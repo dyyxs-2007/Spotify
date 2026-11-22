@@ -1,0 +1,5490 @@
+{
+ "artists": [
+  {
+   "identifier": "ar1",
+   "name": "林知夏",
+   "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+  },
+  {
+   "identifier": "ar2",
+   "name": "陈默",
+   "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+  },
+  {
+   "identifier": "ar3",
+   "name": "苏野",
+   "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+  },
+  {
+   "identifier": "ar4",
+   "name": "Echo Lane",
+   "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+  },
+  {
+   "identifier": "ar5",
+   "name": "北岛乐队",
+   "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+  },
+  {
+   "identifier": "ar6",
+   "name": "周屿",
+   "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+  },
+  {
+   "identifier": "ar7",
+   "name": "Nova Kids",
+   "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+  },
+  {
+   "identifier": "ar8",
+   "name": "许晴川",
+   "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+  }
+ ],
+ "albums": [
+  {
+   "identifier": "al1",
+   "name": "夏日未眠",
+   "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+   "colorHex": "#E13300",
+   "artists": [
+    {
+     "identifier": "ar1",
+     "name": "林知夏",
+     "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+    }
+   ],
+   "releaseYear": 2025,
+   "albumType": "EP",
+   "tracks": [
+    {
+     "identifier": "t1",
+     "name": "Glass Heart",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t1/600/600",
+     "duration": 281,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t2",
+     "name": "纸飞机",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t2/600/600",
+     "duration": 258,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t3",
+     "name": "一万次日落",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t3/600/600",
+     "duration": 255,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t4",
+     "name": "未完成的歌",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t4/600/600",
+     "duration": 233,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t5",
+     "name": "无人知晓的星",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t5/600/600",
+     "duration": 330,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t6",
+     "name": "Golden Hour",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t6/600/600",
+     "duration": 327,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "al2",
+   "name": "城市夜行者",
+   "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+   "colorHex": "#1E3264",
+   "artists": [
+    {
+     "identifier": "ar2",
+     "name": "陈默",
+     "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+    }
+   ],
+   "releaseYear": 2024,
+   "albumType": "EP",
+   "tracks": [
+    {
+     "identifier": "t7",
+     "name": "风吹麦浪",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t7/600/600",
+     "duration": 227,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t8",
+     "name": "慢慢喜欢你",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t8/600/600",
+     "duration": 262,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t9",
+     "name": "山海之间",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t9/600/600",
+     "duration": 328,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t10",
+     "name": "Heartbeat",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t10/600/600",
+     "duration": 221,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t11",
+     "name": "雾里看花",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t11/600/600",
+     "duration": 179,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t12",
+     "name": "Velvet Night",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t12/600/600",
+     "duration": 173,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "al3",
+   "name": "野草与风",
+   "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+   "colorHex": "#8D67AB",
+   "artists": [
+    {
+     "identifier": "ar3",
+     "name": "苏野",
+     "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+    }
+   ],
+   "releaseYear": 2023,
+   "albumType": "专辑",
+   "tracks": [
+    {
+     "identifier": "t13",
+     "name": "Neon Rain",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t13/600/600",
+     "duration": 181,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t14",
+     "name": "回声",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t14/600/600",
+     "duration": 310,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    },
+    {
+     "identifier": "t15",
+     "name": "南方小镇",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t15/600/600",
+     "duration": 245,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t16",
+     "name": "Satellite",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t16/600/600",
+     "duration": 292,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t17",
+     "name": "落日飞车",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t17/600/600",
+     "duration": 329,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t18",
+     "name": "人间烟火",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t18/600/600",
+     "duration": 232,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t19",
+     "name": "迷途",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      },
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t19/600/600",
+     "duration": 308,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "al4",
+   "name": "Afterlight",
+   "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+   "colorHex": "#148A08",
+   "artists": [
+    {
+     "identifier": "ar4",
+     "name": "Echo Lane",
+     "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+    }
+   ],
+   "releaseYear": 2025,
+   "albumType": "专辑",
+   "tracks": [
+    {
+     "identifier": "t20",
+     "name": "Blue Bird",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t20/600/600",
+     "duration": 314,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t21",
+     "name": "后来的我们",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t21/600/600",
+     "duration": 314,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t22",
+     "name": "Lost in Tokyo",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t22/600/600",
+     "duration": 221,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t23",
+     "name": "十二月的风",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t23/600/600",
+     "duration": 200,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t24",
+     "name": "雨停之前",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t24/600/600",
+     "duration": 188,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t25",
+     "name": "Breathe",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t25/600/600",
+     "duration": 193,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t26",
+     "name": "凌晨三点",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t26/600/600",
+     "duration": 205,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t27",
+     "name": "梦游仙境",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t27/600/600",
+     "duration": 273,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "al5",
+   "name": "北方的岛",
+   "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+   "colorHex": "#E8115B",
+   "artists": [
+    {
+     "identifier": "ar5",
+     "name": "北岛乐队",
+     "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+    }
+   ],
+   "releaseYear": 2022,
+   "albumType": "专辑",
+   "tracks": [
+    {
+     "identifier": "t28",
+     "name": "星河滚烫",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      },
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t28/600/600",
+     "duration": 262,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t29",
+     "name": "远方来信",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t29/600/600",
+     "duration": 284,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t30",
+     "name": "车窗外",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t30/600/600",
+     "duration": 306,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    },
+    {
+     "identifier": "t31",
+     "name": "灯火阑珊",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t31/600/600",
+     "duration": 167,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t32",
+     "name": "一个人的旅行",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t32/600/600",
+     "duration": 194,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t33",
+     "name": "Midnight Drive",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t33/600/600",
+     "duration": 302,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t34",
+     "name": "小情歌",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t34/600/600",
+     "duration": 329,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t35",
+     "name": "云边书店",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t35/600/600",
+     "duration": 240,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "al6",
+   "name": "屿",
+   "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+   "colorHex": "#509BF5",
+   "artists": [
+    {
+     "identifier": "ar6",
+     "name": "周屿",
+     "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+    }
+   ],
+   "releaseYear": 2026,
+   "albumType": "专辑",
+   "tracks": [
+    {
+     "identifier": "t36",
+     "name": "Sunday Morning",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t36/600/600",
+     "duration": 165,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t37",
+     "name": "白日梦游",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t37/600/600",
+     "duration": 232,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t38",
+     "name": "晚风来信",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t38/600/600",
+     "duration": 210,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t39",
+     "name": "雪落下的声音",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t39/600/600",
+     "duration": 192,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t40",
+     "name": "深海少女",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t40/600/600",
+     "duration": 241,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t41",
+     "name": "Polaroid",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t41/600/600",
+     "duration": 294,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t42",
+     "name": "Fireflies",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t42/600/600",
+     "duration": 204,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "al7",
+   "name": "Kids Don't Sleep",
+   "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+   "colorHex": "#BA5D07",
+   "artists": [
+    {
+     "identifier": "ar7",
+     "name": "Nova Kids",
+     "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+    }
+   ],
+   "releaseYear": 2024,
+   "albumType": "专辑",
+   "tracks": [
+    {
+     "identifier": "t43",
+     "name": "温柔宇宙",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t43/600/600",
+     "duration": 303,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t44",
+     "name": "Moonlight",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t44/600/600",
+     "duration": 300,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t45",
+     "name": "晴天日记",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t45/600/600",
+     "duration": 318,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t46",
+     "name": "Echoes",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t46/600/600",
+     "duration": 169,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    },
+    {
+     "identifier": "t47",
+     "name": "Paper Planes",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      },
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t47/600/600",
+     "duration": 257,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t48",
+     "name": "Wanderer",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t48/600/600",
+     "duration": 243,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t49",
+     "name": "向北走",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t49/600/600",
+     "duration": 226,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "al8",
+   "name": "晴川历历",
+   "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+   "colorHex": "#27856A",
+   "artists": [
+    {
+     "identifier": "ar8",
+     "name": "许晴川",
+     "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+    }
+   ],
+   "releaseYear": 2025,
+   "albumType": "专辑",
+   "tracks": [
+    {
+     "identifier": "t50",
+     "name": "孤独的鲸",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t50/600/600",
+     "duration": 186,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t51",
+     "name": "夏夜晚风",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t51/600/600",
+     "duration": 182,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t52",
+     "name": "Home",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t52/600/600",
+     "duration": 301,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t53",
+     "name": "Afterglow",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t53/600/600",
+     "duration": 197,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t54",
+     "name": "等风来",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t54/600/600",
+     "duration": 305,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t55",
+     "name": "第七个夏天",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t55/600/600",
+     "duration": 300,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t56",
+     "name": "海盐汽水",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t56/600/600",
+     "duration": 273,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t57",
+     "name": "不说再见",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t57/600/600",
+     "duration": 303,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "al9",
+   "name": "慢热",
+   "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+   "colorHex": "#AF2896",
+   "artists": [
+    {
+     "identifier": "ar1",
+     "name": "林知夏",
+     "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+    }
+   ],
+   "releaseYear": 2021,
+   "albumType": "专辑",
+   "tracks": [
+    {
+     "identifier": "t58",
+     "name": "Starlight",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t58/600/600",
+     "duration": 244,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t59",
+     "name": "旧电台",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t59/600/600",
+     "duration": 260,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t60",
+     "name": "Ocean Eyes",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t60/600/600",
+     "duration": 297,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t61",
+     "name": "时光机",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t61/600/600",
+     "duration": 228,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t62",
+     "name": "月光海",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t62/600/600",
+     "duration": 251,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    },
+    {
+     "identifier": "t63",
+     "name": "Runaway",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t63/600/600",
+     "duration": 306,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t64",
+     "name": "失眠飞行",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t64/600/600",
+     "duration": 221,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t65",
+     "name": "蓝色时刻",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t65/600/600",
+     "duration": 326,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "al10",
+   "name": "Midnight Radio",
+   "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+   "colorHex": "#477D95",
+   "artists": [
+    {
+     "identifier": "ar4",
+     "name": "Echo Lane",
+     "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+    }
+   ],
+   "releaseYear": 2023,
+   "albumType": "EP",
+   "tracks": [
+    {
+     "identifier": "t66",
+     "name": "Wildflower",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t66/600/600",
+     "duration": 173,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t67",
+     "name": "Daydream",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t67/600/600",
+     "duration": 183,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t68",
+     "name": "我们的歌",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t68/600/600",
+     "duration": 236,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t69",
+     "name": "城市航线",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t69/600/600",
+     "duration": 219,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t70",
+     "name": "春日来信",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t70/600/600",
+     "duration": 311,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t71",
+     "name": "Untitled 70",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t71/600/600",
+     "duration": 227,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    }
+   ]
+  }
+ ],
+ "playlists": [
+  {
+   "identifier": "liked",
+   "name": "已点赞的歌曲",
+   "desc": "你点赞过的所有歌曲",
+   "creatorName": "你",
+   "coverURL": "",
+   "colorHex": "#5038A0",
+   "followerCount": 0,
+   "tracks": [
+    {
+     "identifier": "t61",
+     "name": "时光机",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t61/600/600",
+     "duration": 228,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t53",
+     "name": "Afterglow",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t53/600/600",
+     "duration": 197,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t25",
+     "name": "Breathe",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t25/600/600",
+     "duration": 193,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t13",
+     "name": "Neon Rain",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t13/600/600",
+     "duration": 181,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t68",
+     "name": "我们的歌",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t68/600/600",
+     "duration": 236,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t56",
+     "name": "海盐汽水",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t56/600/600",
+     "duration": 273,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t46",
+     "name": "Echoes",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t46/600/600",
+     "duration": 169,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    },
+    {
+     "identifier": "t55",
+     "name": "第七个夏天",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t55/600/600",
+     "duration": 300,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t27",
+     "name": "梦游仙境",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t27/600/600",
+     "duration": 273,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t30",
+     "name": "车窗外",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t30/600/600",
+     "duration": 306,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    },
+    {
+     "identifier": "t66",
+     "name": "Wildflower",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t66/600/600",
+     "duration": 173,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t47",
+     "name": "Paper Planes",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      },
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t47/600/600",
+     "duration": 257,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t4",
+     "name": "未完成的歌",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t4/600/600",
+     "duration": 233,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t44",
+     "name": "Moonlight",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t44/600/600",
+     "duration": 300,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t42",
+     "name": "Fireflies",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t42/600/600",
+     "duration": 204,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t57",
+     "name": "不说再见",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t57/600/600",
+     "duration": 303,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t7",
+     "name": "风吹麦浪",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t7/600/600",
+     "duration": 227,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t59",
+     "name": "旧电台",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t59/600/600",
+     "duration": 260,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t26",
+     "name": "凌晨三点",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t26/600/600",
+     "duration": 205,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t60",
+     "name": "Ocean Eyes",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t60/600/600",
+     "duration": 297,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t22",
+     "name": "Lost in Tokyo",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t22/600/600",
+     "duration": 221,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t64",
+     "name": "失眠飞行",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t64/600/600",
+     "duration": 221,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t16",
+     "name": "Satellite",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t16/600/600",
+     "duration": 292,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t67",
+     "name": "Daydream",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t67/600/600",
+     "duration": 183,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "p1",
+   "name": "每日推荐",
+   "desc": "根据你的口味，每天更新",
+   "creatorName": "Spotify",
+   "coverURL": "https://picsum.photos/seed/sp-playlist-p1/600/600",
+   "colorHex": "#1E3264",
+   "followerCount": 798993,
+   "tracks": [
+    {
+     "identifier": "t69",
+     "name": "城市航线",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t69/600/600",
+     "duration": 219,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t58",
+     "name": "Starlight",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t58/600/600",
+     "duration": 244,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t18",
+     "name": "人间烟火",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t18/600/600",
+     "duration": 232,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t55",
+     "name": "第七个夏天",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t55/600/600",
+     "duration": 300,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t24",
+     "name": "雨停之前",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t24/600/600",
+     "duration": 188,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t36",
+     "name": "Sunday Morning",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t36/600/600",
+     "duration": 165,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t60",
+     "name": "Ocean Eyes",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t60/600/600",
+     "duration": 297,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t32",
+     "name": "一个人的旅行",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t32/600/600",
+     "duration": 194,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t56",
+     "name": "海盐汽水",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t56/600/600",
+     "duration": 273,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t65",
+     "name": "蓝色时刻",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t65/600/600",
+     "duration": 326,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t5",
+     "name": "无人知晓的星",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t5/600/600",
+     "duration": 330,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t29",
+     "name": "远方来信",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t29/600/600",
+     "duration": 284,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t52",
+     "name": "Home",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t52/600/600",
+     "duration": 301,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t63",
+     "name": "Runaway",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t63/600/600",
+     "duration": 306,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t68",
+     "name": "我们的歌",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t68/600/600",
+     "duration": 236,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t66",
+     "name": "Wildflower",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t66/600/600",
+     "duration": 173,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t7",
+     "name": "风吹麦浪",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t7/600/600",
+     "duration": 227,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t4",
+     "name": "未完成的歌",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t4/600/600",
+     "duration": 233,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t42",
+     "name": "Fireflies",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t42/600/600",
+     "duration": 204,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t35",
+     "name": "云边书店",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t35/600/600",
+     "duration": 240,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "p2",
+   "name": "夜晚的电台",
+   "desc": "适合深夜独处时听的歌",
+   "creatorName": "Spotify",
+   "coverURL": "https://picsum.photos/seed/sp-playlist-p2/600/600",
+   "colorHex": "#503750",
+   "followerCount": 63098,
+   "tracks": [
+    {
+     "identifier": "t12",
+     "name": "Velvet Night",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t12/600/600",
+     "duration": 173,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t31",
+     "name": "灯火阑珊",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t31/600/600",
+     "duration": 167,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t22",
+     "name": "Lost in Tokyo",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t22/600/600",
+     "duration": 221,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t53",
+     "name": "Afterglow",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t53/600/600",
+     "duration": 197,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t63",
+     "name": "Runaway",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t63/600/600",
+     "duration": 306,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t62",
+     "name": "月光海",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t62/600/600",
+     "duration": 251,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    },
+    {
+     "identifier": "t28",
+     "name": "星河滚烫",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      },
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t28/600/600",
+     "duration": 262,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t52",
+     "name": "Home",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t52/600/600",
+     "duration": 301,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t58",
+     "name": "Starlight",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t58/600/600",
+     "duration": 244,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t4",
+     "name": "未完成的歌",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t4/600/600",
+     "duration": 233,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t11",
+     "name": "雾里看花",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t11/600/600",
+     "duration": 179,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t25",
+     "name": "Breathe",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t25/600/600",
+     "duration": 193,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t1",
+     "name": "Glass Heart",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t1/600/600",
+     "duration": 281,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t60",
+     "name": "Ocean Eyes",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t60/600/600",
+     "duration": 297,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t17",
+     "name": "落日飞车",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t17/600/600",
+     "duration": 329,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t51",
+     "name": "夏夜晚风",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t51/600/600",
+     "duration": 182,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t56",
+     "name": "海盐汽水",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t56/600/600",
+     "duration": 273,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t30",
+     "name": "车窗外",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t30/600/600",
+     "duration": 306,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "p3",
+   "name": "专注时刻",
+   "desc": "让你沉浸在工作和学习中",
+   "creatorName": "Spotify",
+   "coverURL": "https://picsum.photos/seed/sp-playlist-p3/600/600",
+   "colorHex": "#477D95",
+   "followerCount": 1197621,
+   "tracks": [
+    {
+     "identifier": "t55",
+     "name": "第七个夏天",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t55/600/600",
+     "duration": 300,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t63",
+     "name": "Runaway",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t63/600/600",
+     "duration": 306,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t20",
+     "name": "Blue Bird",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t20/600/600",
+     "duration": 314,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t25",
+     "name": "Breathe",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t25/600/600",
+     "duration": 193,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t38",
+     "name": "晚风来信",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t38/600/600",
+     "duration": 210,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t28",
+     "name": "星河滚烫",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      },
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t28/600/600",
+     "duration": 262,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t8",
+     "name": "慢慢喜欢你",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t8/600/600",
+     "duration": 262,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t65",
+     "name": "蓝色时刻",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t65/600/600",
+     "duration": 326,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t48",
+     "name": "Wanderer",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t48/600/600",
+     "duration": 243,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t21",
+     "name": "后来的我们",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t21/600/600",
+     "duration": 314,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t4",
+     "name": "未完成的歌",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t4/600/600",
+     "duration": 233,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t61",
+     "name": "时光机",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t61/600/600",
+     "duration": 228,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t67",
+     "name": "Daydream",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t67/600/600",
+     "duration": 183,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t31",
+     "name": "灯火阑珊",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t31/600/600",
+     "duration": 167,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t33",
+     "name": "Midnight Drive",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t33/600/600",
+     "duration": 302,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "p4",
+   "name": "华语流行精选",
+   "desc": "最受欢迎的华语流行单曲",
+   "creatorName": "Spotify",
+   "coverURL": "https://picsum.photos/seed/sp-playlist-p4/600/600",
+   "colorHex": "#E8115B",
+   "followerCount": 2228904,
+   "tracks": [
+    {
+     "identifier": "t21",
+     "name": "后来的我们",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t21/600/600",
+     "duration": 314,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t8",
+     "name": "慢慢喜欢你",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t8/600/600",
+     "duration": 262,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t66",
+     "name": "Wildflower",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t66/600/600",
+     "duration": 173,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t11",
+     "name": "雾里看花",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t11/600/600",
+     "duration": 179,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t24",
+     "name": "雨停之前",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t24/600/600",
+     "duration": 188,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t9",
+     "name": "山海之间",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t9/600/600",
+     "duration": 328,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t69",
+     "name": "城市航线",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t69/600/600",
+     "duration": 219,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t31",
+     "name": "灯火阑珊",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t31/600/600",
+     "duration": 167,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t26",
+     "name": "凌晨三点",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t26/600/600",
+     "duration": 205,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t70",
+     "name": "春日来信",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t70/600/600",
+     "duration": 311,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t61",
+     "name": "时光机",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t61/600/600",
+     "duration": 228,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t57",
+     "name": "不说再见",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t57/600/600",
+     "duration": 303,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t37",
+     "name": "白日梦游",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t37/600/600",
+     "duration": 232,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t16",
+     "name": "Satellite",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t16/600/600",
+     "duration": 292,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t38",
+     "name": "晚风来信",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t38/600/600",
+     "duration": 210,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t39",
+     "name": "雪落下的声音",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t39/600/600",
+     "duration": 192,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t3",
+     "name": "一万次日落",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t3/600/600",
+     "duration": 255,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t40",
+     "name": "深海少女",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t40/600/600",
+     "duration": 241,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t6",
+     "name": "Golden Hour",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t6/600/600",
+     "duration": 327,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t27",
+     "name": "梦游仙境",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t27/600/600",
+     "duration": 273,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t43",
+     "name": "温柔宇宙",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t43/600/600",
+     "duration": 303,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t60",
+     "name": "Ocean Eyes",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t60/600/600",
+     "duration": 297,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "p5",
+   "name": "独立民谣",
+   "desc": "木吉他与故事",
+   "creatorName": "dyyxs",
+   "coverURL": "https://picsum.photos/seed/sp-playlist-p5/600/600",
+   "colorHex": "#A56752",
+   "followerCount": 2371933,
+   "tracks": [
+    {
+     "identifier": "t67",
+     "name": "Daydream",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t67/600/600",
+     "duration": 183,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t41",
+     "name": "Polaroid",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t41/600/600",
+     "duration": 294,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t34",
+     "name": "小情歌",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t34/600/600",
+     "duration": 329,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t27",
+     "name": "梦游仙境",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t27/600/600",
+     "duration": 273,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t70",
+     "name": "春日来信",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t70/600/600",
+     "duration": 311,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t31",
+     "name": "灯火阑珊",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t31/600/600",
+     "duration": 167,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t69",
+     "name": "城市航线",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t69/600/600",
+     "duration": 219,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t51",
+     "name": "夏夜晚风",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t51/600/600",
+     "duration": 182,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t9",
+     "name": "山海之间",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t9/600/600",
+     "duration": 328,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t43",
+     "name": "温柔宇宙",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t43/600/600",
+     "duration": 303,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t42",
+     "name": "Fireflies",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t42/600/600",
+     "duration": 204,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t20",
+     "name": "Blue Bird",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t20/600/600",
+     "duration": 314,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t30",
+     "name": "车窗外",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t30/600/600",
+     "duration": 306,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    },
+    {
+     "identifier": "t21",
+     "name": "后来的我们",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t21/600/600",
+     "duration": 314,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "p6",
+   "name": "运动燃脂",
+   "desc": "高 BPM，停不下来",
+   "creatorName": "Spotify",
+   "coverURL": "https://picsum.photos/seed/sp-playlist-p6/600/600",
+   "colorHex": "#E13300",
+   "followerCount": 305467,
+   "tracks": [
+    {
+     "identifier": "t2",
+     "name": "纸飞机",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t2/600/600",
+     "duration": 258,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t59",
+     "name": "旧电台",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t59/600/600",
+     "duration": 260,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t13",
+     "name": "Neon Rain",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t13/600/600",
+     "duration": 181,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t10",
+     "name": "Heartbeat",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t10/600/600",
+     "duration": 221,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t28",
+     "name": "星河滚烫",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      },
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t28/600/600",
+     "duration": 262,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t65",
+     "name": "蓝色时刻",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t65/600/600",
+     "duration": 326,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t34",
+     "name": "小情歌",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t34/600/600",
+     "duration": 329,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t17",
+     "name": "落日飞车",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t17/600/600",
+     "duration": 329,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t60",
+     "name": "Ocean Eyes",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t60/600/600",
+     "duration": 297,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t23",
+     "name": "十二月的风",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t23/600/600",
+     "duration": 200,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t57",
+     "name": "不说再见",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t57/600/600",
+     "duration": 303,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t5",
+     "name": "无人知晓的星",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t5/600/600",
+     "duration": 330,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t61",
+     "name": "时光机",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t61/600/600",
+     "duration": 228,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"
+    },
+    {
+     "identifier": "t16",
+     "name": "Satellite",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t16/600/600",
+     "duration": 292,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    },
+    {
+     "identifier": "t24",
+     "name": "雨停之前",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t24/600/600",
+     "duration": 188,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t19",
+     "name": "迷途",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      },
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t19/600/600",
+     "duration": 308,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "p7",
+   "name": "雨天爵士",
+   "desc": "窗外下雨，屋里有咖啡",
+   "creatorName": "Spotify",
+   "coverURL": "https://picsum.photos/seed/sp-playlist-p7/600/600",
+   "colorHex": "#27856A",
+   "followerCount": 662838,
+   "tracks": [
+    {
+     "identifier": "t57",
+     "name": "不说再见",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t57/600/600",
+     "duration": 303,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t70",
+     "name": "春日来信",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t70/600/600",
+     "duration": 311,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t39",
+     "name": "雪落下的声音",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t39/600/600",
+     "duration": 192,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t68",
+     "name": "我们的歌",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t68/600/600",
+     "duration": 236,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t2",
+     "name": "纸飞机",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t2/600/600",
+     "duration": 258,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t69",
+     "name": "城市航线",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t69/600/600",
+     "duration": 219,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t14",
+     "name": "回声",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t14/600/600",
+     "duration": 310,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"
+    },
+    {
+     "identifier": "t18",
+     "name": "人间烟火",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t18/600/600",
+     "duration": 232,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t17",
+     "name": "落日飞车",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t17/600/600",
+     "duration": 329,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t8",
+     "name": "慢慢喜欢你",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t8/600/600",
+     "duration": 262,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    },
+    {
+     "identifier": "t71",
+     "name": "Untitled 70",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t71/600/600",
+     "duration": 227,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t7",
+     "name": "风吹麦浪",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t7/600/600",
+     "duration": 227,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    }
+   ]
+  },
+  {
+   "identifier": "p8",
+   "name": "2026 年度热歌",
+   "desc": "这一年你循环最多的旋律",
+   "creatorName": "Spotify",
+   "coverURL": "https://picsum.photos/seed/sp-playlist-p8/600/600",
+   "colorHex": "#7358FF",
+   "followerCount": 2321588,
+   "tracks": [
+    {
+     "identifier": "t20",
+     "name": "Blue Bird",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t20/600/600",
+     "duration": 314,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t35",
+     "name": "云边书店",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t35/600/600",
+     "duration": 240,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t37",
+     "name": "白日梦游",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t37/600/600",
+     "duration": 232,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+     "identifier": "t27",
+     "name": "梦游仙境",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t27/600/600",
+     "duration": 273,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t44",
+     "name": "Moonlight",
+     "artists": [
+      {
+       "identifier": "ar7",
+       "name": "Nova Kids",
+       "coverURL": "https://picsum.photos/seed/sp-artist7/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al7",
+      "name": "Kids Don't Sleep",
+      "coverURL": "https://picsum.photos/seed/sp-album7/600/600",
+      "colorHex": "#BA5D07"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t44/600/600",
+     "duration": 300,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t68",
+     "name": "我们的歌",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al10",
+      "name": "Midnight Radio",
+      "coverURL": "https://picsum.photos/seed/sp-album10/600/600",
+      "colorHex": "#477D95"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t68/600/600",
+     "duration": 236,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t34",
+     "name": "小情歌",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t34/600/600",
+     "duration": 329,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t63",
+     "name": "Runaway",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t63/600/600",
+     "duration": 306,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+    },
+    {
+     "identifier": "t17",
+     "name": "落日飞车",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t17/600/600",
+     "duration": 329,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t58",
+     "name": "Starlight",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t58/600/600",
+     "duration": 244,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+    },
+    {
+     "identifier": "t59",
+     "name": "旧电台",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t59/600/600",
+     "duration": 260,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+    },
+    {
+     "identifier": "t55",
+     "name": "第七个夏天",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t55/600/600",
+     "duration": 300,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+     "identifier": "t4",
+     "name": "未完成的歌",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t4/600/600",
+     "duration": 233,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+     "identifier": "t6",
+     "name": "Golden Hour",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      },
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t6/600/600",
+     "duration": 327,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t41",
+     "name": "Polaroid",
+     "artists": [
+      {
+       "identifier": "ar6",
+       "name": "周屿",
+       "coverURL": "https://picsum.photos/seed/sp-artist6/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al6",
+      "name": "屿",
+      "coverURL": "https://picsum.photos/seed/sp-album6/600/600",
+      "colorHex": "#509BF5"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t41/600/600",
+     "duration": 294,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t28",
+     "name": "星河滚烫",
+     "artists": [
+      {
+       "identifier": "ar5",
+       "name": "北岛乐队",
+       "coverURL": "https://picsum.photos/seed/sp-artist5/600/600"
+      },
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al5",
+      "name": "北方的岛",
+      "coverURL": "https://picsum.photos/seed/sp-album5/600/600",
+      "colorHex": "#E8115B"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t28/600/600",
+     "duration": 262,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+    },
+    {
+     "identifier": "t54",
+     "name": "等风来",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t54/600/600",
+     "duration": 305,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t18",
+     "name": "人间烟火",
+     "artists": [
+      {
+       "identifier": "ar3",
+       "name": "苏野",
+       "coverURL": "https://picsum.photos/seed/sp-artist3/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al3",
+      "name": "野草与风",
+      "coverURL": "https://picsum.photos/seed/sp-album3/600/600",
+      "colorHex": "#8D67AB"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t18/600/600",
+     "duration": 232,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t3",
+     "name": "一万次日落",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t3/600/600",
+     "duration": 255,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+     "identifier": "t1",
+     "name": "Glass Heart",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al1",
+      "name": "夏日未眠",
+      "coverURL": "https://picsum.photos/seed/sp-album1/600/600",
+      "colorHex": "#E13300"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t1/600/600",
+     "duration": 281,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+     "identifier": "t22",
+     "name": "Lost in Tokyo",
+     "artists": [
+      {
+       "identifier": "ar4",
+       "name": "Echo Lane",
+       "coverURL": "https://picsum.photos/seed/sp-artist4/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al4",
+      "name": "Afterlight",
+      "coverURL": "https://picsum.photos/seed/sp-album4/600/600",
+      "colorHex": "#148A08"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t22/600/600",
+     "duration": 221,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+     "identifier": "t50",
+     "name": "孤独的鲸",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t50/600/600",
+     "duration": 186,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+     "identifier": "t9",
+     "name": "山海之间",
+     "artists": [
+      {
+       "identifier": "ar2",
+       "name": "陈默",
+       "coverURL": "https://picsum.photos/seed/sp-artist2/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al2",
+      "name": "城市夜行者",
+      "coverURL": "https://picsum.photos/seed/sp-album2/600/600",
+      "colorHex": "#1E3264"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t9/600/600",
+     "duration": 328,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t57",
+     "name": "不说再见",
+     "artists": [
+      {
+       "identifier": "ar8",
+       "name": "许晴川",
+       "coverURL": "https://picsum.photos/seed/sp-artist8/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al8",
+      "name": "晴川历历",
+      "coverURL": "https://picsum.photos/seed/sp-album8/600/600",
+      "colorHex": "#27856A"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t57/600/600",
+     "duration": 303,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+    },
+    {
+     "identifier": "t64",
+     "name": "失眠飞行",
+     "artists": [
+      {
+       "identifier": "ar1",
+       "name": "林知夏",
+       "coverURL": "https://picsum.photos/seed/sp-artist1/600/600"
+      }
+     ],
+     "album": {
+      "identifier": "al9",
+      "name": "慢热",
+      "coverURL": "https://picsum.photos/seed/sp-album9/600/600",
+      "colorHex": "#AF2896"
+     },
+     "coverURL": "https://picsum.photos/seed/sp-track-t64/600/600",
+     "duration": 221,
+     "audioURL": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+    }
+   ]
+  }
+ ],
+ "home": [
+  {
+   "title": "",
+   "style": "shortcut",
+   "items": [
+    {
+     "type": "playlist",
+     "id": "liked"
+    },
+    {
+     "type": "playlist",
+     "id": "p1"
+    },
+    {
+     "type": "album",
+     "id": "al1"
+    },
+    {
+     "type": "playlist",
+     "id": "p2"
+    },
+    {
+     "type": "album",
+     "id": "al4"
+    },
+    {
+     "type": "playlist",
+     "id": "p3"
+    },
+    {
+     "type": "album",
+     "id": "al6"
+    },
+    {
+     "type": "playlist",
+     "id": "p7"
+    }
+   ]
+  },
+  {
+   "title": "为你推荐",
+   "style": "card",
+   "items": [
+    {
+     "type": "playlist",
+     "id": "p1"
+    },
+    {
+     "type": "playlist",
+     "id": "p4"
+    },
+    {
+     "type": "playlist",
+     "id": "p8"
+    },
+    {
+     "type": "playlist",
+     "id": "p5"
+    },
+    {
+     "type": "playlist",
+     "id": "p6"
+    },
+    {
+     "type": "playlist",
+     "id": "p7"
+    }
+   ]
+  },
+  {
+   "title": "最近播放",
+   "style": "card",
+   "items": [
+    {
+     "type": "album",
+     "id": "al2"
+    },
+    {
+     "type": "playlist",
+     "id": "p2"
+    },
+    {
+     "type": "album",
+     "id": "al5"
+    },
+    {
+     "type": "album",
+     "id": "al8"
+    },
+    {
+     "type": "playlist",
+     "id": "p3"
+    },
+    {
+     "type": "album",
+     "id": "al10"
+    }
+   ]
+  },
+  {
+   "title": "你常听的艺人",
+   "style": "artist",
+   "items": [
+    {
+     "type": "artist",
+     "id": "ar1"
+    },
+    {
+     "type": "artist",
+     "id": "ar2"
+    },
+    {
+     "type": "artist",
+     "id": "ar3"
+    },
+    {
+     "type": "artist",
+     "id": "ar4"
+    },
+    {
+     "type": "artist",
+     "id": "ar5"
+    },
+    {
+     "type": "artist",
+     "id": "ar6"
+    },
+    {
+     "type": "artist",
+     "id": "ar7"
+    },
+    {
+     "type": "artist",
+     "id": "ar8"
+    }
+   ]
+  },
+  {
+   "title": "热门新专辑",
+   "style": "card",
+   "items": [
+    {
+     "type": "album",
+     "id": "al6"
+    },
+    {
+     "type": "album",
+     "id": "al1"
+    },
+    {
+     "type": "album",
+     "id": "al4"
+    },
+    {
+     "type": "album",
+     "id": "al7"
+    },
+    {
+     "type": "album",
+     "id": "al3"
+    },
+    {
+     "type": "album",
+     "id": "al9"
+    }
+   ]
+  }
+ ],
+ "library": [
+  {
+   "type": "playlist",
+   "id": "liked"
+  },
+  {
+   "type": "playlist",
+   "id": "p5"
+  },
+  {
+   "type": "album",
+   "id": "al1"
+  },
+  {
+   "type": "artist",
+   "id": "ar1"
+  },
+  {
+   "type": "playlist",
+   "id": "p1"
+  },
+  {
+   "type": "album",
+   "id": "al4"
+  },
+  {
+   "type": "playlist",
+   "id": "p2"
+  },
+  {
+   "type": "artist",
+   "id": "ar4"
+  },
+  {
+   "type": "album",
+   "id": "al6"
+  },
+  {
+   "type": "playlist",
+   "id": "p8"
+  },
+  {
+   "type": "artist",
+   "id": "ar6"
+  },
+  {
+   "type": "album",
+   "id": "al2"
+  },
+  {
+   "type": "playlist",
+   "id": "p7"
+  },
+  {
+   "type": "album",
+   "id": "al8"
+  },
+  {
+   "type": "artist",
+   "id": "ar2"
+  }
+ ],
+ "categories": [
+  {
+   "identifier": "c1",
+   "name": "流行",
+   "colorHex": "#E13300",
+   "coverURL": "https://picsum.photos/seed/sp-cat1/600/600"
+  },
+  {
+   "identifier": "c2",
+   "name": "华语",
+   "colorHex": "#148A08",
+   "coverURL": "https://picsum.photos/seed/sp-cat2/600/600"
+  },
+  {
+   "identifier": "c3",
+   "name": "摇滚",
+   "colorHex": "#BA5D07",
+   "coverURL": "https://picsum.photos/seed/sp-cat3/600/600"
+  },
+  {
+   "identifier": "c4",
+   "name": "民谣",
+   "colorHex": "#477D95",
+   "coverURL": "https://picsum.photos/seed/sp-cat4/600/600"
+  },
+  {
+   "identifier": "c5",
+   "name": "电子",
+   "colorHex": "#006450",
+   "coverURL": "https://picsum.photos/seed/sp-cat5/600/600"
+  },
+  {
+   "identifier": "c6",
+   "name": "说唱",
+   "colorHex": "#E91429",
+   "coverURL": "https://picsum.photos/seed/sp-cat6/600/600"
+  },
+  {
+   "identifier": "c7",
+   "name": "爵士",
+   "colorHex": "#503750",
+   "coverURL": "https://picsum.photos/seed/sp-cat7/600/600"
+  },
+  {
+   "identifier": "c8",
+   "name": "古典",
+   "colorHex": "#1E3264",
+   "coverURL": "https://picsum.photos/seed/sp-cat8/600/600"
+  },
+  {
+   "identifier": "c9",
+   "name": "学习",
+   "colorHex": "#E8115B",
+   "coverURL": "https://picsum.photos/seed/sp-cat9/600/600"
+  },
+  {
+   "identifier": "c10",
+   "name": "睡眠",
+   "colorHex": "#27856A",
+   "coverURL": "https://picsum.photos/seed/sp-cat10/600/600"
+  },
+  {
+   "identifier": "c11",
+   "name": "运动",
+   "colorHex": "#D84000",
+   "coverURL": "https://picsum.photos/seed/sp-cat11/600/600"
+  },
+  {
+   "identifier": "c12",
+   "name": "心情",
+   "colorHex": "#7358FF",
+   "coverURL": "https://picsum.photos/seed/sp-cat12/600/600"
+  },
+  {
+   "identifier": "c13",
+   "name": "独立",
+   "colorHex": "#0D73EC",
+   "coverURL": "https://picsum.photos/seed/sp-cat13/600/600"
+  },
+  {
+   "identifier": "c14",
+   "name": "R&B",
+   "colorHex": "#1D3D4E",
+   "coverURL": "https://picsum.photos/seed/sp-cat14/600/600"
+  },
+  {
+   "identifier": "c15",
+   "name": "怀旧",
+   "colorHex": "#8D67AB",
+   "coverURL": "https://picsum.photos/seed/sp-cat15/600/600"
+  },
+  {
+   "identifier": "c16",
+   "name": "派对",
+   "colorHex": "#509BF5",
+   "coverURL": "https://picsum.photos/seed/sp-cat16/600/600"
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+//
+//  PrefixHeader.pch
+//  Spotify
+//
+//  全局预编译头：只放几乎每个文件都会用到、且极少变化的头文件。
+//
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+#ifdef __OBJC__
+    #import <UIKit/UIKit.h>
+    #import <Foundation/Foundation.h>
+    #import <Masonry/Masonry.h>
+    #import <SDWebImage/SDWebImage.h>
+
+    #import "SPTheme.h"
+    #import "UIColor+SPHex.h"
+    #import "UIImageView+SPCover.h"
+#endif
+
+#endif /* PrefixHeader_pch */
