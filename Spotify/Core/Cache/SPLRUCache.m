@@ -32,6 +32,10 @@
 
 @implementation SPLRUCache
 
+@synthesize totalCost = _totalCost;
+@synthesize hitCount = _hitCount;
+@synthesize missCount = _missCount;
+
 - (instancetype)initWithMaxCount:(NSUInteger)maxCount {
     return [self initWithMaxCount:maxCount maxCost:NSUIntegerMax];
 }
@@ -91,7 +95,7 @@
     if (!node) return nil;
     [self unlinkNode:node];
     [self.map removeObjectForKey:node.key];
-    self.totalCost = (self.totalCost >= node.cost) ? (self.totalCost - node.cost) : 0;
+    _totalCost = (_totalCost >= node.cost) ? (_totalCost - node.cost) : 0;
     return node;
 }
 
@@ -104,6 +108,27 @@
     return c;
 }
 
+- (NSUInteger)totalCost {
+    os_unfair_lock_lock(&_lock);
+    NSUInteger v = _totalCost;
+    os_unfair_lock_unlock(&_lock);
+    return v;
+}
+
+- (NSUInteger)hitCount {
+    os_unfair_lock_lock(&_lock);
+    NSUInteger v = _hitCount;
+    os_unfair_lock_unlock(&_lock);
+    return v;
+}
+
+- (NSUInteger)missCount {
+    os_unfair_lock_lock(&_lock);
+    NSUInteger v = _missCount;
+    os_unfair_lock_unlock(&_lock);
+    return v;
+}
+
 - (id)objectForKey:(id)key {
     if (!key) return nil;
     os_unfair_lock_lock(&_lock);
@@ -111,10 +136,10 @@
     id val = nil;
     if (node) {
         [self moveToHead:node];
-        self.hitCount += 1;
+        _hitCount += 1;
         val = node.value;
     } else {
-        self.missCount += 1;
+        _missCount += 1;
     }
     os_unfair_lock_unlock(&_lock);
     return val;
@@ -141,14 +166,16 @@
     }
 
     NSMutableArray<SPLRUNode *> *evicted = nil;
+    void (^handler)(id, id) = nil;
 
     os_unfair_lock_lock(&_lock);
+    handler = self.evictionHandler;
     SPLRUNode *existing = self.map[key];
     if (existing) {
-        self.totalCost = (self.totalCost >= existing.cost) ? (self.totalCost - existing.cost) : 0;
+        _totalCost = (_totalCost >= existing.cost) ? (_totalCost - existing.cost) : 0;
         existing.value = object;
         existing.cost = cost;
-        self.totalCost += cost;
+        _totalCost += cost;
         [self moveToHead:existing];
     } else {
         SPLRUNode *node = [SPLRUNode new];
@@ -156,22 +183,24 @@
         node.value = object;
         node.cost = cost;
         self.map[node.key] = node;
-        self.totalCost += cost;
+        _totalCost += cost;
         [self insertAtHead:node];
     }
 
-    while (self.map.count > self.maxCount || (self.map.count > 0 && self.totalCost > self.maxCost)) {
+    while (self.map.count > self.maxCount || (self.map.count > 0 && _totalCost > self.maxCost)) {
         SPLRUNode *removed = [self popTail];
         if (!removed) break;
-        if (self.evictionHandler) {
+        if (handler) {
             if (!evicted) evicted = [NSMutableArray array];
             [evicted addObject:removed];
         }
     }
     os_unfair_lock_unlock(&_lock);
 
-    for (SPLRUNode *node in evicted) {
-        self.evictionHandler(node.key, node.value);
+    if (handler) {
+        for (SPLRUNode *node in evicted) {
+            handler(node.key, node.value);
+        }
     }
 }
 
@@ -182,7 +211,7 @@
     if (node) {
         [self unlinkNode:node];
         [self.map removeObjectForKey:key];
-        self.totalCost = (self.totalCost >= node.cost) ? (self.totalCost - node.cost) : 0;
+        _totalCost = (_totalCost >= node.cost) ? (_totalCost - node.cost) : 0;
     }
     os_unfair_lock_unlock(&_lock);
 }
@@ -192,25 +221,29 @@
     [self.map removeAllObjects];
     self.head = nil;
     self.tail = nil;
-    self.totalCost = 0;
+    _totalCost = 0;
     os_unfair_lock_unlock(&_lock);
 }
 
 - (void)trimToCount:(NSUInteger)targetCount {
     NSMutableArray<SPLRUNode *> *evicted = nil;
+    void (^handler)(id, id) = nil;
     os_unfair_lock_lock(&_lock);
+    handler = self.evictionHandler;
     while (self.map.count > targetCount) {
         SPLRUNode *removed = [self popTail];
         if (!removed) break;
-        if (self.evictionHandler) {
+        if (handler) {
             if (!evicted) evicted = [NSMutableArray array];
             [evicted addObject:removed];
         }
     }
     os_unfair_lock_unlock(&_lock);
 
-    for (SPLRUNode *node in evicted) {
-        self.evictionHandler(node.key, node.value);
+    if (handler) {
+        for (SPLRUNode *node in evicted) {
+            handler(node.key, node.value);
+        }
     }
 }
 

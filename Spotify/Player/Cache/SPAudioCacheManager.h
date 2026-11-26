@@ -34,6 +34,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 判断某首歌曲是否已在 L1 内存或 L2 磁盘就绪
 - (BOOL)hasCachedTrack:(SPTrack *)track;
 
+/// 使单首曲目的 L1/L2 缓存失效（当 URL 403 或本地文件损坏导致播放失败时调用）
+- (void)invalidateCacheForTrack:(nullable SPTrack *)track;
+
 /// 仅清空 L1 内存缓存（切换数据源时保留已落盘音频）
 - (void)clearMemoryCaches;
 

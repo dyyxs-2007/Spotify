@@ -18,6 +18,7 @@
 @property (nonatomic, strong) SPNeteaseAuthProvider *provider;
 @property (nonatomic, copy, nullable) NSString *unikey;
 @property (nonatomic, strong, nullable) NSTimer *pollTimer;
+@property (nonatomic, assign) BOOL checkingStatus;
 @property (nonatomic, assign) BOOL fetchingProfile;
 
 @property (nonatomic, strong) UIView *qrCardView;
@@ -55,6 +56,14 @@
     self.view.backgroundColor = [UIColor sp_colorWithHex:0x0E0E10];
     [self setupViews];
     [self loadNewQRCode];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    // 若用户侧滑返回中途取消回到本页，恢复二维码状态轮询
+    if (self.unikey.length > 0 && self.expiredOverlay.hidden && !self.fetchingProfile && !self.pollTimer) {
+        [self startPolling];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -109,7 +118,7 @@
 
     _expiredOverlay = [UIView new];
     _expiredOverlay.backgroundColor = [UIColor colorWithWhite:0.08 alpha:0.84];
-    _expiredOverlay.layer.cornerRadius = 14;
+    _expiredOverlay.layer.cornerRadius = 12;
     _expiredOverlay.layer.cornerCurve = kCACornerCurveContinuous;
     _expiredOverlay.hidden = YES;
     [_expiredOverlay addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(refreshTapped)]];
@@ -136,6 +145,7 @@
     _statusDescLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.60];
     _statusDescLabel.textAlignment = NSTextAlignmentCenter;
     _statusDescLabel.numberOfLines = 0;
+    _statusDescLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
     [self.view addSubview:_statusDescLabel];
 
     _refreshButton = [SPScaleButton buttonWithType:UIButtonTypeCustom];
@@ -265,23 +275,27 @@
 }
 
 - (void)pollQRStatus {
-    if (self.unikey.length == 0 || self.fetchingProfile) return;
+    if (self.unikey.length == 0 || self.fetchingProfile || self.checkingStatus) return;
+    self.checkingStatus = YES;
     NSString *currentKey = self.unikey;
     __weak typeof(self) weakSelf = self;
     [self.provider checkQRStatusForKey:currentKey
                             completion:^(NSInteger statusCode, NSString *message, NSString *cookie, NSError *error) {
-        if (![weakSelf.unikey isEqualToString:currentKey] || error) return;
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        strongSelf.checkingStatus = NO;
+        if (![strongSelf.unikey isEqualToString:currentKey] || error || strongSelf.fetchingProfile) return;
         if (statusCode == 800) {
-            [weakSelf stopPolling];
-            weakSelf.expiredOverlay.hidden = NO;
-            weakSelf.statusTitleLabel.text = @"二维码已过期";
-            weakSelf.statusTitleLabel.textColor = [UIColor sp_colorWithHex:0xF59B23];
+            [strongSelf stopPolling];
+            strongSelf.expiredOverlay.hidden = NO;
+            strongSelf.statusTitleLabel.text = @"二维码已过期";
+            strongSelf.statusTitleLabel.textColor = [UIColor sp_colorWithHex:0xF59B23];
         } else if (statusCode == 802) {
-            weakSelf.statusTitleLabel.text = @"已扫码，请在手机上确认登录";
-            weakSelf.statusTitleLabel.textColor = SPTheme.brandGreenColor;
+            strongSelf.statusTitleLabel.text = @"已扫码，请在手机上确认登录";
+            strongSelf.statusTitleLabel.textColor = SPTheme.brandGreenColor;
         } else if (statusCode == 803 && cookie.length > 0) {
-            [weakSelf stopPolling];
-            [weakSelf completeQRLoginWithCookie:cookie];
+            [strongSelf stopPolling];
+            [strongSelf completeQRLoginWithCookie:cookie];
         }
     }];
 }
@@ -294,20 +308,24 @@
 
     __weak typeof(self) weakSelf = self;
     [self.provider fetchUserProfileWithCookie:cookie completion:^(SPUser *user, NSError *error) {
-        weakSelf.fetchingProfile = NO;
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        strongSelf.fetchingProfile = NO;
         if (error || !user) {
             [SPToast showMessage:error.localizedDescription ?: @"同步账号资料失败"];
-            weakSelf.statusTitleLabel.text = @"同步账号失败，请重试";
+            strongSelf.statusTitleLabel.text = @"同步账号失败，请轻触重试";
+            strongSelf.statusTitleLabel.textColor = [UIColor sp_colorWithHex:0xF59B23];
+            strongSelf.expiredOverlay.hidden = NO;
             return;
         }
         [[SPAuthService shared] adoptAuthenticatedUser:user];
         [SPToast showMessage:[NSString stringWithFormat:@"欢迎回来，%@", user.nickname]];
 
-        if (weakSelf.context == SPAuthPresentationContextGate) {
+        if (strongSelf.context == SPAuthPresentationContextGate) {
             [[SceneDelegate shared] transitionToMainAppAnimated:YES];
         } else {
-            void (^handler)(void) = [weakSelf.authSuccessHandler copy];
-            [weakSelf.navigationController dismissViewControllerAnimated:YES completion:handler];
+            void (^handler)(void) = [strongSelf.authSuccessHandler copy];
+            [strongSelf.navigationController dismissViewControllerAnimated:YES completion:handler];
         }
     }];
 }

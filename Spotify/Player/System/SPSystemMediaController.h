@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)activateAudioSession;
 - (void)updateNowPlayingInfo;
+- (void)clearNowPlayingInfo;
 
 @end
 

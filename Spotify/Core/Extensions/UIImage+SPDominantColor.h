@@ -22,6 +22,9 @@ NS_ASSUME_NONNULL_BEGIN
                                cacheKey:(nullable NSString *)cacheKey
                              completion:(void (^)(UIColor *color))completion;
 
+/// 清空封面主色内存缓存
++ (void)sp_clearDominantColorCache;
+
 @end
 
 NS_ASSUME_NONNULL_END

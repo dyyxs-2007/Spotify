@@ -12,6 +12,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+FOUNDATION_EXPORT NSNotificationName const SPPlayerSleepTimerDidUpdateNotification;
+
 typedef NS_ENUM(NSInteger, SPPlaybackState) {
     SPPlaybackStateIdle = 0,
     SPPlaybackStateLoading,
@@ -55,6 +57,8 @@ typedef NS_ENUM(NSInteger, SPRepeatMode) {
 @property (nonatomic, assign, readonly) SPRepeatMode repeatMode;
 @property (nonatomic, assign, readonly, getter=isShuffleEnabled) BOOL shuffleEnabled;
 @property (nonatomic, assign, getter=isPreloadEnabled) BOOL preloadEnabled;
+@property (nonatomic, assign, readonly) NSTimeInterval sleepTimerRemaining;
+@property (nonatomic, assign, readonly, getter=isSleepTimerActive) BOOL sleepTimerActive;
 /// 当前曲目之后将要播放的歌曲（已考虑随机顺序）
 @property (nonatomic, copy, readonly) NSArray<SPTrack *> *upNextTracks;
 @property (nonatomic, strong, readonly, nullable) SPTrack *previousTrack;
@@ -80,6 +84,10 @@ typedef NS_ENUM(NSInteger, SPRepeatMode) {
 - (void)seekToTime:(NSTimeInterval)time;
 - (void)toggleShuffle;
 - (void)cycleRepeatMode;
+/// 设置睡眠定时自动暂停（minutes <= 0 表示关闭定时）
+- (void)setSleepTimerMinutes:(NSInteger)minutes;
+/// 彻底停止播放、清空队列与锁屏信息并回归空白播放页待机态（退出登录/切换账号时调用）
+- (void)resetToEmptyState;
 
 @end
 

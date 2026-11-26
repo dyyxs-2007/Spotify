@@ -22,7 +22,11 @@
 #import "SPNeteaseAuthProvider.h"
 #import "SPActivityViewController.h"
 #import "SPHistoryViewController.h"
+#import "SPListeningStatsViewController.h"
+#import "SPMoodRoamViewController.h"
 #import "SPSettingsViewController.h"
+#import "SPUserAvatarButton.h"
+#import "UIImage+SPDominantColor.h"
 #import "SPHaptics.h"
 #import "SPLRUCache.h"
 #import "SPPlayQueue.h"
@@ -30,8 +34,10 @@
 #import "SPMusicRepository.h"
 #import "SPLibraryStore.h"
 #import "SPNeteaseMusicSource.h"
+#import "SPNeteaseSession.h"
 #import "SPMockMusicSource.h"
 #import "SPHistoryStore.h"
+#import "SPListeningStatsStore.h"
 #import "SPAuthService.h"
 #import "SPPlayerService.h"
 #import "SPPlaylist.h"
@@ -315,33 +321,52 @@
                         [lib toggleFollowArtist:firstArtist];
                     }
 
-                    // 多账号音乐库与点赞/歌单数据隔离校验
+                    // 多账号音乐库、收听历史与网易云会话隔离校验
                     SPUser *origUser = [SPAuthService shared].currentUser;
                     SPUser *userA = [SPUser new];
                     userA.userId = @"u_iso_test_a";
                     userA.account = @"iso_a@spotify.local";
                     userA.nickname = @"隔离账号A";
+                    userA.cookie = @"MUSIC_U=fake_cookie_a";
                     [[SPAuthService shared] adoptAuthenticatedUser:userA];
                     NSString *pathA = lib.currentStorageFilePath;
                     [lib toggleLikeTrack:sampleTrack];
                     SPPlaylist *plA = [lib createPlaylistWithName:@"账号A私密歌单" desc:nil];
+                    [[SPListeningStatsStore shared] clearCurrentUserStats];
+                    [[SPHistoryStore shared] recordTrack:sampleTrack];
+                    BOOL noFakeFromHistory = ([[SPListeningStatsStore shared] currentSnapshot].totalPlayCount == 0);
+                    [[SPListeningStatsStore shared] recordTrackPlay:sampleTrack sessionId:777];
+                    [[SPListeningStatsStore shared] recordTrackPlay:sampleTrack sessionId:777];
+                    NSUInteger dedupedPlayCount = [[SPListeningStatsStore shared] currentSnapshot].totalPlayCount;
+                    [[SPListeningStatsStore shared] recordListeningSeconds:420.0 forTrack:sampleTrack atDate:[NSDate date] countPlay:NO];
 
                     SPUser *userB = [SPUser new];
                     userB.userId = @"u_iso_test_b";
                     userB.account = @"iso_b@spotify.local";
                     userB.nickname = @"隔离账号B";
                     [[SPAuthService shared] adoptAuthenticatedUser:userB];
+                    [[SPListeningStatsStore shared] clearCurrentUserStats];
                     NSString *pathB = lib.currentStorageFilePath;
                     BOOL bIsolatedFromA = ![pathA isEqualToString:pathB]
                         && ![lib isTrackLiked:sampleTrack.identifier]
-                        && ([lib localPlaylistWithId:plA.identifier] == nil);
+                        && ([lib localPlaylistWithId:plA.identifier] == nil)
+                        && ![[SPHistoryStore shared].recentTracks containsObject:sampleTrack]
+                        && ([[SPListeningStatsStore shared] currentSnapshot].totalPlayCount == 0)
+                        && ([SPNeteaseSession shared].userCookie == nil);
 
                     [[SPAuthService shared] adoptAuthenticatedUser:userA];
+                    SPListeningStatsSnapshot *snapA = [[SPListeningStatsStore shared] currentSnapshot];
                     BOOL aRestoredIntact = [lib isTrackLiked:sampleTrack.identifier]
-                        && ([lib localPlaylistWithId:plA.identifier] != nil);
+                        && ([lib localPlaylistWithId:plA.identifier] != nil)
+                        && [[SPHistoryStore shared].recentTracks containsObject:sampleTrack]
+                        && noFakeFromHistory
+                        && (dedupedPlayCount == 1)
+                        && (snapA.totalPlayCount == 1 && snapA.totalMinutes >= 6.9);
                     assertCheck(bIsolatedFromA && aRestoredIntact,
-                                @"不同登录账号之间音乐库（点赞歌曲 / 自建歌单 / 关注艺人）独立隔离不互通");
+                                @"不同登录账号之间音乐库、收听历史、听歌统计隔离且单次播放严格只计 1 次");
 
+                    [[SPHistoryStore shared] clearHistory];
+                    [[SPListeningStatsStore shared] clearCurrentUserStats];
                     [[NSFileManager defaultManager] removeItemAtPath:pathA error:nil];
                     [[NSFileManager defaultManager] removeItemAtPath:pathB error:nil];
                     if (origUser) {
@@ -399,10 +424,14 @@
                     [player playTracks:orderedPlayable startIndex:0 contextTitle:playlist.name];
 
                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                        NSUInteger playsBeforeReplayTap = [[SPListeningStatsStore shared] currentSnapshot].totalPlayCount;
+                        [player playTracks:orderedPlayable startIndex:0 contextTitle:playlist.name];
+                        BOOL replayTapDeduped = ([[SPListeningStatsStore shared] currentSnapshot].totalPlayCount == playsBeforeReplayTap);
+
                         assertCheck([[SPAudioCacheManager shared] hasCachedTrack:track1],
                                     @"播放真实网易云第 1 首时已后台预加载第 2 首到 L1/L2 缓存");
-                        assertCheck([[SPHistoryStore shared].recentTracks.firstObject isEqual:track0],
-                                    @"SPHistoryStore 实时记录真实网易云曲目");
+                        assertCheck([[SPHistoryStore shared].recentTracks.firstObject isEqual:track0] && replayTapDeduped,
+                                    @"SPHistoryStore 实时记录真实网易云曲目且重按在播歌曲不重复计数");
 
                         NSDictionary *nowInfo = MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo;
                         assertCheck([nowInfo[MPMediaItemPropertyTitle] isEqualToString:track0.name] &&
@@ -509,6 +538,19 @@
     }];
 }
 
++ (void)pollOnMainWithInterval:(NSTimeInterval)interval
+                   maxAttempts:(NSInteger)maxAttempts
+                     condition:(BOOL (^)(void))condition
+                    completion:(void (^)(void))completion {
+    if ((condition && condition()) || maxAttempts <= 0) {
+        if (completion) completion();
+        return;
+    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self pollOnMainWithInterval:interval maxAttempts:(maxAttempts - 1) condition:condition completion:completion];
+    });
+}
+
 + (void)runUIFlowTestWithRootVC:(SPRootViewController *)rootVC
                        playlist:(SPPlaylist *)playlist
                     assertCheck:(void (^)(BOOL, NSString *))assertCheck
@@ -551,7 +593,7 @@
             assertCheck(bundleIcons != nil || [UIImage imageNamed:@"AppIcon60x60"] != nil,
                         @"AppIcon 资源集已编译打包至应用 Bundle");
             [SPToast showMessage:@"测试验证码：682914（5分钟内有效，也可点击下方提示一键填入）"
-                        duration:6.5
+                        duration:1.2
                         position:SPToastPositionTop];
             [self captureWindow:(authNav.view.window ?: rootVC.view.window) named:@"snap_login.png"];
 
@@ -560,7 +602,7 @@
                 [authNav pushViewController:qrVC animated:NO];
                 [authNav.view layoutIfNeeded];
             }
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.55 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 [self captureWindow:(authNav.view.window ?: rootVC.view.window) named:@"snap_qr_login.png"];
                 [rootVC dismissViewControllerAnimated:NO completion:^{
                     // 2.5 验证首页 UI 实测下滑自动追加更多分区
@@ -585,6 +627,23 @@
                     [self captureWindow:rootVC.view.window named:@"snap_netease_home.png"];
                     [SPTheme applyInterfaceStyle:UIUserInterfaceStyleLight animated:YES];
                     assertCheck(!SPTheme.isDarkMode, @"动态主题支持切换至浅色模式");
+
+                    UIView *detachedView = [UIView new];
+                    UITraitCollection *detachedLightTC = [SPTheme resolvedTraitCollectionForView:detachedView];
+                    SPUserAvatarButton *probeAvatar = [[SPUserAvatarButton alloc] initWithDiameter:34];
+                    UILabel *probeInitial = nil;
+                    for (UIView *sub in probeAvatar.subviews) {
+                        if ([sub isKindOfClass:UILabel.class]) {
+                            probeInitial = (UILabel *)sub;
+                            break;
+                        }
+                    }
+                    CGFloat r = 0, g = 0, b = 0, a = 0;
+                    [[probeInitial.textColor resolvedColorWithTraitCollection:detachedLightTC] getRed:&r green:&g blue:&b alpha:&a];
+                    assertCheck(detachedLightTC.userInterfaceStyle == UIUserInterfaceStyleLight && r > 0.95 && g > 0.95 && b > 0.95,
+                                @"浅色模式下头像文字高对比白色且离屏视图主题解析正确");
+                    assertCheck((id)homeNav.delegate == (id)homeNav && (id)homeNav.interactivePopGestureRecognizer.delegate == (id)homeNav,
+                                @"导航控制器过渡期间侧滑返回冲突保护已启用");
 
                     BOOL auxiliaryWindowsTransparent = YES;
                     for (UIWindow *win in rootVC.view.window.windowScene.windows) {
@@ -627,6 +686,51 @@
                     [settingsVC.view layoutIfNeeded];
                     [self captureWindow:rootVC.view.window named:@"snap_settings_dark.png"];
 
+                    // 4.2 首页右上角新功能：「听歌统计」平滑样条曲线页 & 「漫游调频」电台页
+                    SPMoodRoamViewController *roamVC = [SPMoodRoamViewController new];
+                    [roamVC.view layoutIfNeeded]; // 提前并行发起漫游频段曲目检索
+
+                    SPListeningStatsViewController *statsVC = [SPListeningStatsViewController new];
+                    [homeNav pushViewController:statsVC animated:NO];
+                    [statsVC.view layoutIfNeeded];
+                    [statsVC selectRange:SPListeningChartRangeHourly animated:NO];
+                    [statsVC.view layoutIfNeeded];
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.55 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                        [self captureWindow:rootVC.view.window named:@"snap_stats_dark.png"];
+
+                        for (UIView *sub in statsVC.view.subviews) {
+                            if ([sub isKindOfClass:UIScrollView.class]) {
+                                UIScrollView *sv = (UIScrollView *)sub;
+                                CGFloat maxY = MAX(0.0, sv.contentSize.height - CGRectGetHeight(sv.bounds) + sv.adjustedContentInset.bottom);
+                                [sv setContentOffset:CGPointMake(0, maxY) animated:NO];
+                                [statsVC.view layoutIfNeeded];
+                                break;
+                            }
+                        }
+                        [self captureWindow:rootVC.view.window named:@"snap_stats_lower.png"];
+
+                        [SPTheme applyInterfaceStyle:UIUserInterfaceStyleLight animated:NO];
+                        for (UIView *sub in statsVC.view.subviews) {
+                            if ([sub isKindOfClass:UIScrollView.class]) {
+                                [(UIScrollView *)sub setContentOffset:CGPointZero animated:NO];
+                                break;
+                            }
+                        }
+                        [statsVC selectRange:SPListeningChartRange7Days animated:NO];
+                        [statsVC.view layoutIfNeeded];
+                        [self captureWindow:rootVC.view.window named:@"snap_stats_light.png"];
+
+                        [SPTheme applyInterfaceStyle:UIUserInterfaceStyleDark animated:NO];
+                        [statsVC.view layoutIfNeeded];
+                        SPListeningStatsSnapshot *realSnap = [[SPListeningStatsStore shared] currentSnapshot];
+                        BOOL statsOK = (statsVC.selectedRange == SPListeningChartRange7Days)
+                            && (realSnap.points7Days.count == 7)
+                            && (realSnap.pointsHourly.count == 12)
+                            && (realSnap.hourlyMinutes24.count == 24)
+                            && (realSnap.hourlyPlays24.count == 24);
+                        assertCheck(statsOK, @"听歌统计页（编辑式趋势图 / 24h声波节律 / 真实单曲排行）渲染与切换正常");
+                        [homeNav popViewControllerAnimated:NO];
+
                     SPActivityViewController *activityVC = [SPActivityViewController new];
                     SPHistoryViewController *historyVC = [SPHistoryViewController new];
                     SPDetailViewController *detailVC = [[SPDetailViewController alloc] initWithMediaItem:playlist];
@@ -654,33 +758,86 @@
                             if (sampleArtist.identifier.length > 0) {
                                 [self captureWindow:rootVC.view.window named:@"snap_artist_detail.png"];
                             }
-                            [homeNav popToRootViewControllerAnimated:NO];
+                            [homeNav pushViewController:roamVC animated:NO];
+                            [roamVC.view layoutIfNeeded];
+                            [self pollOnMainWithInterval:0.25 maxAttempts:14 condition:^BOOL {
+                                return roamVC.currentTrackCount > 0;
+                            } completion:^{
+                                assertCheck(roamVC.currentTrackCount > 0, @"漫游调频电台页刻度调谐与真实曲目流拉取成功");
+                                [self captureWindow:rootVC.view.window named:@"snap_mood_roam.png"];
+                                [SPTheme applyInterfaceStyle:UIUserInterfaceStyleLight animated:NO];
+                                [roamVC.view layoutIfNeeded];
+                                [self captureWindow:rootVC.view.window named:@"snap_mood_roam_light.png"];
+                                [SPTheme applyInterfaceStyle:originalStyle animated:NO];
+                                [homeNav popToRootViewControllerAnimated:NO];
 
-                        // 5. 真实网易云搜索页与搜索结果
+                        // 5. 真实网易云搜索页、焦点遮罩点击收起键盘与搜索结果
                         tab.selectedIndex = 1;
-                        [[SPMusicRepository shared] searchWithKeyword:@"周杰伦" completion:^(SPSearchResult *res, NSError *err) {
-                            assertCheck(!err && res.tracks.count > 0 && res.playlists.count > 0,
-                                        @"真实网易云搜索 (周杰伦) 返回单曲与歌单成功");
-                        }];
+                        UINavigationController *searchNav = tab.viewControllers[1];
+                        UIViewController *searchRoot = searchNav.viewControllers.firstObject;
+                        [rootVC.view layoutIfNeeded];
+                        [tab.view layoutIfNeeded];
+                        [searchNav.view layoutIfNeeded];
+                        [searchRoot.view layoutIfNeeded];
 
-                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.55 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                            [self captureWindow:rootVC.view.window named:@"snap_netease_search.png"];
-                            tab.selectedIndex = 2;
-                            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                                UINavigationController *libNav = tab.viewControllers[2];
-                                UIViewController *libRoot = libNav.viewControllers.firstObject;
-                                UICollectionView *libCV = nil;
-                                for (UIView *sub in libRoot.view.subviews) {
-                                    if ([sub isKindOfClass:UICollectionView.class]) {
-                                        libCV = (UICollectionView *)sub;
-                                        break;
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                            UIControl *searchScrim = nil;
+                            UITextField *searchField = nil;
+                            UICollectionView *searchCV = nil;
+                            for (UIView *sub in searchRoot.view.subviews) {
+                                if ([sub isMemberOfClass:UIControl.class]) {
+                                    searchScrim = (UIControl *)sub;
+                                } else if ([sub isKindOfClass:UICollectionView.class]) {
+                                    searchCV = (UICollectionView *)sub;
+                                }
+                                for (UIView *inner in sub.subviews) {
+                                    if ([inner isKindOfClass:UITextField.class]) {
+                                        searchField = (UITextField *)inner;
                                     }
                                 }
-                                assertCheck(libCV != nil && libCV.numberOfSections == 2
-                                            && [libCV numberOfItemsInSection:0] >= 2
-                                            && [libCV numberOfItemsInSection:1] > 0,
-                                            @"音乐库分区展示「我的音乐」与「网易云精选推荐」成功");
-                                [self captureWindow:rootVC.view.window named:@"snap_library_split.png"];
+                            }
+                            BOOL scrimShownOnFocus = NO;
+                            BOOL scrimDismissedOnTap = NO;
+                            if (searchScrim && searchField) {
+                                BOOL became = [searchField becomeFirstResponder];
+                                scrimShownOnFocus = became && !searchScrim.hidden;
+                                [searchScrim sendActionsForControlEvents:UIControlEventTouchUpInside];
+                                scrimDismissedOnTap = !searchField.isFirstResponder;
+                            }
+                            assertCheck(scrimShownOnFocus && scrimDismissedOnTap,
+                                        @"搜索页弹出键盘显示聚焦遮罩且轻触遮罩立即收起键盘");
+
+                            [[SPMusicRepository shared] searchWithKeyword:@"周杰伦" completion:^(SPSearchResult *res, NSError *err) {
+                                assertCheck(!err && res.tracks.count > 0 && res.playlists.count > 0,
+                                            @"真实网易云搜索 (周杰伦) 返回单曲与歌单成功");
+                            }];
+
+                            [self pollOnMainWithInterval:0.25 maxAttempts:16 condition:^BOOL {
+                                return searchCV != nil && [searchCV numberOfItemsInSection:0] > 0;
+                            } completion:^{
+                                [self captureWindow:rootVC.view.window named:@"snap_netease_search.png"];
+                                tab.selectedIndex = 2;
+                                [rootVC.view layoutIfNeeded];
+                                [tab.view layoutIfNeeded];
+                                UINavigationController *libNav = tab.viewControllers[2];
+                                UIViewController *libRoot = libNav.viewControllers.firstObject;
+                                [libNav.view layoutIfNeeded];
+                                [libRoot.view layoutIfNeeded];
+                                __block UICollectionView *libCV = nil;
+                                [self pollOnMainWithInterval:0.30 maxAttempts:20 condition:^BOOL {
+                                    for (UIView *sub in libRoot.view.subviews) {
+                                        if ([sub isKindOfClass:UICollectionView.class]) {
+                                            libCV = (UICollectionView *)sub;
+                                            break;
+                                        }
+                                    }
+                                    return libCV != nil && libCV.numberOfSections == 2 && [libCV numberOfItemsInSection:1] > 0;
+                                } completion:^{
+                                    assertCheck(libCV != nil && libCV.numberOfSections == 2
+                                                && [libCV numberOfItemsInSection:0] >= 2
+                                                && [libCV numberOfItemsInSection:1] > 0,
+                                                @"音乐库分区展示「我的音乐」与「网易云精选推荐」成功");
+                                    [self captureWindow:rootVC.view.window named:@"snap_library_split.png"];
 
                                 // 验证首页「播客」标签页面截图
                                 tab.selectedIndex = 0;
@@ -736,11 +893,11 @@
                                                                                                                                       document:nil
                                                                                                                                     themeColor:SPTheme.brandGreenColor
                                                                                                                                showTranslation:YES];
-                                                    fullLyrics.modalPresentationStyle = UIModalPresentationFullScreen;
                                                     [presentedNP presentViewController:fullLyrics animated:NO completion:nil];
                                                     [fullLyrics.view layoutIfNeeded];
-                                                    assertCheck(presentedNP.presentedViewController == fullLyrics,
-                                                                @"全屏实时歌词页面弹出正常");
+                                                    assertCheck(presentedNP.presentedViewController == fullLyrics
+                                                                && fullLyrics.modalPresentationStyle == UIModalPresentationOverFullScreen,
+                                                                @"全屏实时歌词页面以 OverFullScreen 平滑弹出正常");
                                                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.65 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                                                         [self captureWindow:(fullLyrics.view.window ?: rootVC.view.window) named:@"snap_lyrics_fullscreen.png"];
                                                         [presentedNP dismissViewControllerAnimated:NO completion:^{
@@ -760,9 +917,36 @@
                                                                     [[SPPlayerService shared] seekToTime:25.0];
                                                                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                                                                         assertCheck(fabs([SPPlayerService shared].currentTime - 25.0) < 2.0, @"全屏播放页 Seek 进度稳定无跳变");
+
+                                                                        // 睡眠定时开启与取消验证
+                                                                        SPPlayerService *playerSvc = [SPPlayerService shared];
+                                                                        [playerSvc setSleepTimerMinutes:15];
+                                                                        BOOL timerStarted = playerSvc.isSleepTimerActive && playerSvc.sleepTimerRemaining > 800;
+                                                                        [playerSvc setSleepTimerMinutes:0];
+                                                                        BOOL timerStopped = !playerSvc.isSleepTimerActive;
+                                                                        assertCheck(timerStarted && timerStopped, @"抽屉睡眠定时设置与取消状态正常");
+
                                                                         [rootVC dismissViewControllerAnimated:NO completion:^{
-                                                                            tab.selectedIndex = 0;
-                                                                            if (completion) completion();
+                                                                            // 模拟登录态用户播放中退出账号：播放必须立即停止并回归空白播放页状态
+                                                                            [[SPAuthService shared] logout];
+                                                                            BOOL playbackReset = (playerSvc.currentTrack == nil)
+                                                                                && (playerSvc.state == SPPlaybackStateIdle)
+                                                                                && !playerSvc.isPlaying
+                                                                                && (MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo == nil);
+                                                                            assertCheck(playbackReset, @"播放中退出账号后立即停止音乐并清空锁屏/队列状态");
+
+                                                                            [rootVC presentNowPlaying];
+                                                                            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.45 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                                                                                UIViewController *emptyNP = rootVC.presentedViewController;
+                                                                                assertCheck([emptyNP isKindOfClass:SPNowPlayingViewController.class],
+                                                                                            @"空白待机播放页弹出展示正常");
+                                                                                [self captureWindow:(emptyNP.view.window ?: rootVC.view.window) named:@"snap_nowplaying_empty.png"];
+                                                                                [rootVC dismissViewControllerAnimated:NO completion:^{
+                                                                                    tab.selectedIndex = 0;
+                                                                                    [self captureWindow:rootVC.view.window named:@"snap_miniplayer_idle.png"];
+                                                                                    if (completion) completion();
+                                                                                }];
+                                                                            });
                                                                         }];
                                                                     });
                                                                 }];
@@ -773,9 +957,12 @@
                                             });
                                         });
                                     });
-                            });
+                                }];
+                            }];
                         });
+                            }];
                         });
+                    });
                     });
                 }];
             });

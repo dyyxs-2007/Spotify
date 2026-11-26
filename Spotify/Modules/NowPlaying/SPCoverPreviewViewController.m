@@ -9,6 +9,7 @@
 #import "SPGradientView.h"
 #import "SPScaleButton.h"
 #import "SPAlbum.h"
+#import "UIImage+SPDominantColor.h"
 #import "SPHaptics.h"
 #import "SPToast.h"
 #import <Photos/Photos.h>
@@ -18,6 +19,8 @@
 @property (nonatomic, strong, nullable) UIImage *placeholderImage;
 @property (nonatomic, strong) UIColor *themeColor;
 
+@property (nonatomic, strong) UIView *backdropContainer;
+@property (nonatomic, strong) UIImageView *backdropArtworkView;
 @property (nonatomic, strong) SPGradientView *ambientBackground;
 @property (nonatomic, strong) UIVisualEffectView *blurOverlay;
 @property (nonatomic, strong) UIScrollView *zoomScrollView;
@@ -69,18 +72,28 @@
 }
 
 - (void)setupViews {
+    _backdropContainer = [UIView new];
+    [self.view addSubview:_backdropContainer];
+
+    _backdropArtworkView = [UIImageView new];
+    _backdropArtworkView.contentMode = UIViewContentModeScaleAspectFill;
+    _backdropArtworkView.clipsToBounds = YES;
+    _backdropArtworkView.alpha = 0.42;
+    _backdropArtworkView.image = self.placeholderImage;
+    [_backdropContainer addSubview:_backdropArtworkView];
+
     _ambientBackground = [SPGradientView new];
-    _ambientBackground.colors = @[
-        [self.themeColor colorWithAlphaComponent:0.85],
-        [self.themeColor sp_darkenedBy:0.45],
-        [UIColor sp_colorWithHex:0x070709],
-    ];
-    _ambientBackground.locations = @[@0.0, @0.45, @1.0];
-    [self.view addSubview:_ambientBackground];
+    _ambientBackground.locations = @[@0.0, @0.48, @1.0];
+    [_backdropContainer addSubview:_ambientBackground];
+    [self applyBackdropThemeColor:self.themeColor animated:NO];
 
     _blurOverlay = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterialDark]];
-    _blurOverlay.alpha = 0.72;
-    [self.view addSubview:_blurOverlay];
+    _blurOverlay.alpha = 1.0;
+    [_backdropContainer addSubview:_blurOverlay];
+
+    if (self.placeholderImage) {
+        [self updateAmbientFromImage:self.placeholderImage animated:NO];
+    }
 
     _zoomScrollView = [UIScrollView new];
     _zoomScrollView.delegate = self;
@@ -188,11 +201,17 @@
     actionRow.alignment = UIStackViewAlignmentCenter;
     [_bottomBar addSubview:actionRow];
 
-    [_ambientBackground mas_makeConstraints:^(MASConstraintMaker *make) {
+    [_backdropContainer mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.view);
     }];
+    [_backdropArtworkView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self.backdropContainer);
+    }];
+    [_ambientBackground mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self.backdropContainer);
+    }];
     [_blurOverlay mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.view);
+        make.edges.equalTo(self.backdropContainer);
     }];
     [_topChromeBar mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(8);
@@ -283,6 +302,10 @@
 
 - (void)layoutInitialCoverFrameIfNeeded {
     if (self.zoomScrollView.zoomScale > 1.01) return;
+    if (!CGAffineTransformIsIdentity(self.coverShadowContainer.transform) ||
+        !CGAffineTransformIsIdentity(self.zoomScrollView.transform)) {
+        return;
+    }
     CGSize boundsSize = self.zoomScrollView.bounds.size;
     if (boundsSize.width <= 0 || boundsSize.height <= 0) return;
 
@@ -320,6 +343,31 @@
     return [NSURL URLWithString:raw];
 }
 
+- (void)applyBackdropThemeColor:(UIColor *)color animated:(BOOL)animated {
+    UIColor *resolved = color ?: [UIColor sp_colorWithHex:0x23252C];
+    self.themeColor = resolved;
+    NSArray<UIColor *> *colors = @[
+        [resolved colorWithAlphaComponent:0.74],
+        [[resolved sp_darkenedBy:0.48] colorWithAlphaComponent:0.86],
+        [UIColor sp_colorWithHex:0x070709],
+    ];
+    [self.ambientBackground setColors:colors animated:animated];
+}
+
+- (void)updateAmbientFromImage:(UIImage *)image animated:(BOOL)animated {
+    if (!image) return;
+    NSString *cacheKey = self.track.coverURL.length ? self.track.coverURL : self.track.identifier;
+    UIColor *cached = [UIImage sp_cachedDominantColorForKey:cacheKey];
+    if (cached) {
+        [self applyBackdropThemeColor:cached animated:animated];
+        return;
+    }
+    __weak typeof(self) weakSelf = self;
+    [UIImage sp_extractDominantColorForImage:image cacheKey:cacheKey completion:^(UIColor *color) {
+        [weakSelf applyBackdropThemeColor:color animated:YES];
+    }];
+}
+
 - (void)loadHighResArtwork {
     NSURL *hdURL = [self hdCoverURLForTrack:self.track];
     if (!hdURL) return;
@@ -338,6 +386,8 @@
                             animations:^{
                 weakSelf.coverImageView.image = image;
             } completion:nil];
+            weakSelf.backdropArtworkView.image = image;
+            [weakSelf updateAmbientFromImage:image animated:YES];
             [weakSelf updateResolutionBadgeWithImage:image];
         }
     }];
@@ -398,6 +448,12 @@
 }
 
 - (void)handleSingleTap:(UITapGestureRecognizer *)tap {
+    CGPoint topPt = [tap locationInView:self.topChromeBar];
+    CGPoint bottomPt = [tap locationInView:self.bottomBar];
+    if (CGRectContainsPoint(self.topChromeBar.bounds, topPt) ||
+        CGRectContainsPoint(self.bottomBar.bounds, bottomPt)) {
+        return;
+    }
     CGPoint pt = [tap locationInView:self.coverShadowContainer];
     if (CGRectContainsPoint(self.coverShadowContainer.bounds, pt)) {
         return; // 点在封面上不误关，点空白处关闭
@@ -414,31 +470,34 @@
 - (void)handleDismissPan:(UIPanGestureRecognizer *)pan {
     CGPoint t = [pan translationInView:self.view];
     CGPoint v = [pan velocityInView:self.view];
+    BOOL reduceMotion = UIAccessibilityIsReduceMotionEnabled();
 
     if (pan.state == UIGestureRecognizerStateChanged) {
         CGFloat dy = MAX(t.y, 0);
         CGFloat progress = MIN(dy / 280.0, 1.0);
-        CGFloat scale = 1.0 - 0.14 * progress;
-        self.coverShadowContainer.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(scale, scale),
-                                                                        CGAffineTransformMakeTranslation(0, dy));
-        self.ambientBackground.alpha = 1.0 - 0.55 * progress;
-        self.blurOverlay.alpha = 0.72 * (1.0 - 0.55 * progress);
-        self.topChromeBar.alpha = 1.0 - progress;
-        self.bottomBar.alpha = 1.0 - progress;
+        CGFloat eased = 1.0 - pow(1.0 - progress, 1.5);
+        if (!reduceMotion) {
+            CGFloat scale = 1.0 - 0.14 * eased;
+            CGFloat dx = MAX(-36.0, MIN(36.0, t.x * 0.22));
+            self.zoomScrollView.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(scale, scale),
+                                                                    CGAffineTransformMakeTranslation(dx, dy * 0.92));
+        }
+        self.backdropContainer.alpha = 1.0 - 0.60 * eased;
+        self.topChromeBar.alpha = MAX(0.0, 1.0 - progress * 1.4);
+        self.bottomBar.alpha = MAX(0.0, 1.0 - progress * 1.4);
     } else if (pan.state == UIGestureRecognizerStateEnded || pan.state == UIGestureRecognizerStateCancelled) {
         if (t.y > 110 || v.y > 750) {
             [SPHaptics light];
             [self dismissViewControllerAnimated:YES completion:nil];
         } else {
-            [UIView animateWithDuration:0.32
+            [UIView animateWithDuration:reduceMotion ? 0.16 : 0.34
                                   delay:0
-                 usingSpringWithDamping:0.86
+                 usingSpringWithDamping:reduceMotion ? 1.0 : 0.86
                   initialSpringVelocity:0
-                                options:UIViewAnimationOptionBeginFromCurrentState
+                                options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction
                              animations:^{
-                self.coverShadowContainer.transform = CGAffineTransformIdentity;
-                self.ambientBackground.alpha = 1.0;
-                self.blurOverlay.alpha = 0.72;
+                self.zoomScrollView.transform = CGAffineTransformIdentity;
+                self.backdropContainer.alpha = 1.0;
                 self.topChromeBar.alpha = 1.0;
                 self.bottomBar.alpha = 1.0;
             } completion:nil];
@@ -481,6 +540,7 @@
         [weakSelf shareTapped];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 
@@ -535,6 +595,7 @@
 
     UIActivityViewController *activity = [[UIActivityViewController alloc] initWithActivityItems:items applicationActivities:nil];
     activity.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+    [SPTheme configurePopoverForViewController:activity sourceView:self.shareButton presentingVC:self];
     [self presentViewController:activity animated:YES completion:nil];
 }
 

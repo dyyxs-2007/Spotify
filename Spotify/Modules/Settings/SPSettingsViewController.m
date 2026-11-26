@@ -5,6 +5,7 @@
 
 #import "SPSettingsViewController.h"
 #import "SPScaleButton.h"
+#import "SPToggleSwitch.h"
 #import "SPOnboardingViewController.h"
 #import "SPAuthService.h"
 #import "SPPlayerService.h"
@@ -16,6 +17,7 @@
 #import "SPLocalAuthProvider.h"
 #import "SPNeteaseAuthProvider.h"
 #import "SPRootViewController.h"
+#import "UIImage+SPDominantColor.h"
 #import "SceneDelegate.h"
 #import "SPHaptics.h"
 #import "SPToast.h"
@@ -65,134 +67,6 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
 @implementation SPSettingsSection
 @end
 
-#pragma mark - Silent Custom Toggle Switch
-
-/// 自定义轻量级开关控件（避免系统原生 UISwitch 在 iPhone 上强行触发无法关闭的 Taptic 震动）
-@interface SPToggleSwitch : UIControl
-@property (nonatomic, assign, getter=isOn) BOOL on;
-@property (nonatomic, strong) UIColor *onTintColor;
-@property (nonatomic, strong) UIView *trackView;
-@property (nonatomic, strong) UIView *thumbView;
-- (void)setOn:(BOOL)on animated:(BOOL)animated;
-@end
-
-@implementation SPToggleSwitch
-
-- (instancetype)initWithFrame:(CGRect)frame {
-    if (self = [super initWithFrame:CGRectMake(0, 0, 51, 31)]) {
-        _onTintColor = SPTheme.brandGreenColor;
-
-        _trackView = [UIView new];
-        _trackView.userInteractionEnabled = NO;
-        _trackView.layer.cornerRadius = 15.5;
-        _trackView.layer.cornerCurve = kCACornerCurveContinuous;
-        [self addSubview:_trackView];
-
-        _thumbView = [UIView new];
-        _thumbView.userInteractionEnabled = NO;
-        _thumbView.backgroundColor = UIColor.whiteColor;
-        _thumbView.layer.cornerRadius = 13.5;
-        _thumbView.layer.cornerCurve = kCACornerCurveCircular;
-        _thumbView.layer.shadowColor = UIColor.blackColor.CGColor;
-        _thumbView.layer.shadowOpacity = 0.18;
-        _thumbView.layer.shadowRadius = 2.5;
-        _thumbView.layer.shadowOffset = CGSizeMake(0, 1.5);
-        [self addSubview:_thumbView];
-
-        [self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap)]];
-        UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
-        [self addGestureRecognizer:pan];
-
-        [self updateVisualStateAnimated:NO];
-    }
-    return self;
-}
-
-- (CGSize)intrinsicContentSize {
-    return CGSizeMake(51, 31);
-}
-
-- (void)layoutSubviews {
-    [super layoutSubviews];
-    self.trackView.frame = CGRectMake(0, (CGRectGetHeight(self.bounds) - 31) * 0.5, 51, 31);
-    CGFloat thumbX = self.on ? 22.0 : 2.0;
-    CGFloat thumbY = CGRectGetMinY(self.trackView.frame) + 2.0;
-    self.thumbView.frame = CGRectMake(thumbX, thumbY, 27, 27);
-    self.thumbView.layer.shadowPath = [UIBezierPath bezierPathWithOvalInRect:self.thumbView.bounds].CGPath;
-}
-
-- (void)setOn:(BOOL)on {
-    [self setOn:on animated:NO];
-}
-
-- (void)setOn:(BOOL)on animated:(BOOL)animated {
-    if (_on == on) {
-        [self updateVisualStateAnimated:NO];
-        return;
-    }
-    _on = on;
-    [self updateVisualStateAnimated:animated];
-}
-
-- (void)updateVisualStateAnimated:(BOOL)animated {
-    void (^apply)(void) = ^{
-        if (self.on) {
-            self.trackView.backgroundColor = self.onTintColor ?: SPTheme.brandGreenColor;
-            self.trackView.layer.borderWidth = 0.0;
-        } else {
-            self.trackView.backgroundColor = SPTheme.highlightColor;
-            self.trackView.layer.borderWidth = 1.0 / UIScreen.mainScreen.scale;
-            self.trackView.layer.borderColor = [SPTheme.separatorColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
-        }
-        [self layoutSubviews];
-    };
-
-    if (animated && !UIAccessibilityIsReduceMotionEnabled()) {
-        [UIView animateWithDuration:0.22
-                              delay:0
-             usingSpringWithDamping:0.86
-              initialSpringVelocity:0.2
-                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction
-                         animations:apply
-                         completion:nil];
-    } else {
-        apply();
-    }
-}
-
-- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
-    [super traitCollectionDidChange:previousTraitCollection];
-    if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection]) {
-        [self updateVisualStateAnimated:NO];
-    }
-}
-
-- (void)handleTap {
-    [self setOn:!self.on animated:YES];
-    [self sendActionsForControlEvents:UIControlEventValueChanged];
-}
-
-- (void)handlePan:(UIPanGestureRecognizer *)pan {
-    if (pan.state == UIGestureRecognizerStateEnded) {
-        CGPoint v = [pan velocityInView:self];
-        CGPoint t = [pan translationInView:self];
-        BOOL targetOn = self.on;
-        if (fabs(v.x) > 80) {
-            targetOn = (v.x > 0);
-        } else if (fabs(t.x) > 8) {
-            targetOn = (t.x > 0);
-        } else {
-            targetOn = !self.on;
-        }
-        if (targetOn != self.on) {
-            [self setOn:targetOn animated:YES];
-            [self sendActionsForControlEvents:UIControlEventValueChanged];
-        }
-    }
-}
-
-@end
-
 #pragma mark - Spacious Custom Settings Cell
 
 @interface SPSettingsCell : UITableViewCell
@@ -218,7 +92,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         self.selectedBackgroundView = selected;
 
         _iconContainer = [UIView new];
-        _iconContainer.layer.cornerRadius = 9;
+        _iconContainer.layer.cornerRadius = 7;
         _iconContainer.layer.cornerCurve = kCACornerCurveContinuous;
         [self.contentView addSubview:_iconContainer];
 
@@ -232,9 +106,10 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         _titleLabel.numberOfLines = 0;
 
         _subtitleLabel = [UILabel new];
-        _subtitleLabel.font = [SPTheme fontOfSize:12.5 weight:UIFontWeightRegular];
+        _subtitleLabel.font = [SPTheme monospacedDigitFontOfSize:12.5 weight:UIFontWeightRegular];
         _subtitleLabel.textColor = SPTheme.textSecondaryColor;
         _subtitleLabel.numberOfLines = 2;
+        _subtitleLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
 
         UIStackView *textStack = [[UIStackView alloc] initWithArrangedSubviews:@[_titleLabel, _subtitleLabel]];
         textStack.axis = UILayoutConstraintAxisVertical;
@@ -242,7 +117,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         [self.contentView addSubview:textStack];
 
         _toggleSwitch = [SPToggleSwitch new];
-        _toggleSwitch.onTintColor = SPTheme.brandGreenColor;
+        _toggleSwitch.onTintColor = SPTheme.accentColor;
         [_toggleSwitch addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
         [_toggleSwitch setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
         [_toggleSwitch setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
@@ -309,7 +184,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
     self.trailingLabel.text = row.trailingText;
 
     if (row.accessoryType == SPSettingsAccessoryTypeSwitch) {
-        self.toggleSwitch.onTintColor = SPTheme.brandGreenColor;
+        self.toggleSwitch.onTintColor = SPTheme.accentColor;
         [self.toggleSwitch setOn:row.switchOn animated:NO];
         self.switchHandler = row.switchHandler;
         self.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -330,6 +205,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
 
 @interface SPSettingsViewController () <UITableViewDataSource, UITableViewDelegate, SPAuthObserver>
 @property (nonatomic, strong) UIView *navBar;
+@property (nonatomic, strong) UIView *navDivider;
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, copy) NSArray<SPSettingsSection *> *sections;
 @end
@@ -388,9 +264,10 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
     titleLabel.textColor = SPTheme.textPrimaryColor;
     [_navBar addSubview:titleLabel];
 
-    UIView *divider = [UIView new];
-    divider.backgroundColor = SPTheme.separatorColor;
-    [_navBar addSubview:divider];
+    _navDivider = [UIView new];
+    _navDivider.backgroundColor = SPTheme.separatorColor;
+    _navDivider.alpha = 0.0;
+    [_navBar addSubview:_navDivider];
 
     _tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleInsetGrouped];
     _tableView.backgroundColor = SPTheme.backgroundColor;
@@ -398,7 +275,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
     _tableView.separatorInset = UIEdgeInsetsMake(0, 64, 0, 16);
     _tableView.rowHeight = UITableViewAutomaticDimension;
     _tableView.estimatedRowHeight = 66;
-    _tableView.contentInset = UIEdgeInsetsMake(8, 0, 40, 0);
+    _tableView.contentInset = UIEdgeInsetsMake(8, 0, 16, 0);
     _tableView.dataSource = self;
     _tableView.delegate = self;
     [_tableView registerClass:SPSettingsCell.class forCellReuseIdentifier:[SPSettingsCell reuseId]];
@@ -417,7 +294,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         make.centerX.equalTo(self.navBar);
         make.centerY.equalTo(backBtn);
     }];
-    [divider mas_makeConstraints:^(MASConstraintMaker *make) {
+    [_navDivider mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.bottom.equalTo(self.navBar);
         make.height.mas_equalTo(1.0 / UIScreen.mainScreen.scale);
     }];
@@ -455,7 +332,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         SPHaptics.enabled = isOn;
     };
 
-    SPSettingsRow *onboardingRow = [SPSettingsRow rowWithIcon:@"sparkles.rectangle.stack"
+    SPSettingsRow *onboardingRow = [SPSettingsRow rowWithIcon:@"sparkles.rectangle.stack.fill"
                                                     iconColor:[UIColor sp_colorWithHex:0x38BDF8]
                                                         title:@"重新查看新手引导"
                                                      subtitle:@"浏览全屏横滑介绍页"];
@@ -472,7 +349,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
     if (auth.isLoggedIn) {
         SPUser *u = auth.currentUser;
         SPSettingsRow *profileRow = [SPSettingsRow rowWithIcon:@"person.crop.circle.fill"
-                                                     iconColor:SPTheme.brandGreenColor
+                                                     iconColor:SPTheme.accentColor
                                                          title:u.nickname
                                                       subtitle:u.account];
         profileRow.trailingText = u.planName ?: @"Premium";
@@ -486,7 +363,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         secAuth.rows = @[profileRow, logoutRow];
     } else {
         SPSettingsRow *loginRow = [SPSettingsRow rowWithIcon:@"person.badge.plus"
-                                                   iconColor:SPTheme.brandGreenColor
+                                                   iconColor:SPTheme.accentColor
                                                        title:@"登录或注册 Spotify"
                                                     subtitle:@"当前为游客浏览模式"];
         loginRow.titleColor = SPTheme.accentColor;
@@ -497,7 +374,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
 
     // 3. 播放与缓存策略
     SPSettingsRow *preloadRow = [SPSettingsRow rowWithIcon:@"bolt.fill"
-                                                 iconColor:SPTheme.brandGreenColor
+                                                 iconColor:SPTheme.accentColor
                                                      title:@"上下首自动预加载"
                                                   subtitle:@"提前缓存相邻曲目，实现 0ms 秒切"];
     preloadRow.accessoryType = SPSettingsAccessoryTypeSwitch;
@@ -520,7 +397,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
     double hitRate = audioCache.totalRequestCount > 0
         ? (audioCache.totalHitCount * 100.0 / audioCache.totalRequestCount) : 0.0;
 
-    SPSettingsRow *l1Row = [SPSettingsRow rowWithIcon:@"memorychip"
+    SPSettingsRow *l1Row = [SPSettingsRow rowWithIcon:@"memorychip.fill"
                                             iconColor:[UIColor sp_colorWithHex:0x34D399]
                                                 title:@"L1 内存热缓存"
                                              subtitle:[NSString stringWithFormat:@"AVURLAsset %lu 首 · 播放地址 %lu 条",
@@ -614,6 +491,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         [[SceneDelegate shared] transitionToAuthWelcomeAnimated:YES];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 
@@ -621,6 +499,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
     [SPHaptics medium];
     [[SPAudioCacheManager shared] clearAllCaches];
     [[SPMusicRepository shared] clearMetadataCaches];
+    [UIImage sp_clearDominantColorCache];
     [SDImageCache.sharedImageCache clearMemory];
     __weak typeof(self) weakSelf = self;
     [SDImageCache.sharedImageCache clearDiskOnCompletion:^{
@@ -645,6 +524,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         [[NSUserDefaults standardUserDefaults] setObject:@"netease" forKey:@"sp_music_source_type_v1"];
         SPNeteaseSession.baseURLString = SPNeteaseDefaultBaseURL;
         [SPNeteaseSession shared].anonymousCookie = nil;
+        [[SPPlayerService shared] resetToEmptyState];
         [SPMusicRepository shared].source = [SPNeteaseMusicSource new];
         [weakSelf rebuildSections];
         [SPToast showMessage:@"已切换至网易云音乐 API"];
@@ -653,6 +533,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
                                               style:UIAlertActionStyleDefault
                                             handler:^(UIAlertAction *action) {
         [[NSUserDefaults standardUserDefaults] setObject:@"mock" forKey:@"sp_music_source_type_v1"];
+        [[SPPlayerService shared] resetToEmptyState];
         [SPMusicRepository shared].source = [SPMockMusicSource new];
         [weakSelf rebuildSections];
         [SPToast showMessage:@"已切换至本地 Mock 数据源"];
@@ -663,6 +544,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         [weakSelf promptCustomBaseURL];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 
@@ -686,6 +568,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         NSString *resolved = [SPNeteaseSession baseURLString];
         [[NSUserDefaults standardUserDefaults] setObject:@"netease" forKey:@"sp_music_source_type_v1"];
         [SPNeteaseSession shared].anonymousCookie = nil;
+        [[SPPlayerService shared] resetToEmptyState];
         [SPMusicRepository shared].source = [[SPNeteaseMusicSource alloc] initWithBaseURLString:resolved];
         [weakSelf rebuildSections];
         [SPToast showMessage:[NSString stringWithFormat:@"已切换 API：%@", resolved]];
@@ -720,6 +603,7 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
         [SPToast showMessage:@"已切换为网易云账号认证"];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 
@@ -771,6 +655,11 @@ typedef NS_ENUM(NSInteger, SPSettingsAccessoryType) {
     SPSettingsCell *cell = [tableView dequeueReusableCellWithIdentifier:[SPSettingsCell reuseId] forIndexPath:indexPath];
     [cell configureWithRow:self.sections[indexPath.section].rows[indexPath.row]];
     return cell;
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    CGFloat offsetY = MAX(0.0, scrollView.contentOffset.y + scrollView.adjustedContentInset.top);
+    self.navDivider.alpha = MIN(MAX(offsetY / 16.0, 0.0), 1.0);
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {

@@ -202,6 +202,19 @@
     [self applyNowPlayingInfoForTrack:track];
 }
 
+- (void)clearNowPlayingInfo {
+    [self.artworkOperation cancel];
+    self.artworkOperation = nil;
+    self.artworkTrackId = nil;
+    self.cachedArtwork = nil;
+    self.shouldResumeAfterInterruption = NO;
+    MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo = nil;
+    MPNowPlayingInfoCenter.defaultCenter.playbackState = MPNowPlayingPlaybackStateStopped;
+    [[AVAudioSession sharedInstance] setActive:NO
+                                   withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
+                                         error:nil];
+}
+
 - (void)applyNowPlayingInfoForTrack:(SPTrack *)track {
     SPPlayerService *player = self.playerService;
     if (!player || ![player.currentTrack.identifier isEqualToString:track.identifier]) return;

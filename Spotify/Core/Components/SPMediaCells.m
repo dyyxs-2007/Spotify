@@ -4,12 +4,13 @@
 //
 
 #import "SPMediaCells.h"
+#import "SPScaleButton.h"
 
 #pragma mark - SPMediaRowCell
 
 @interface SPMediaRowCell ()
 @property (nonatomic, strong) SPMediaRowView *rowView;
-@property (nonatomic, strong) UIButton *moreButton;
+@property (nonatomic, strong) SPScaleButton *moreButton;
 @end
 
 @implementation SPMediaRowCell
@@ -23,8 +24,8 @@
         selected.backgroundColor = SPTheme.highlightColor;
         self.selectedBackgroundView = selected;
 
-        _moreButton = [UIButton buttonWithType:UIButtonTypeSystem];
-        [_moreButton setImage:[SPTheme symbol:@"ellipsis" size:16 weight:UIImageSymbolWeightBold] forState:UIControlStateNormal];
+        _moreButton = [SPScaleButton buttonWithType:UIButtonTypeSystem];
+        [_moreButton sp_setSymbol:@"ellipsis" size:16 weight:UIImageSymbolWeightBold animated:NO];
         _moreButton.tintColor = SPTheme.textSecondaryColor;
         [_moreButton addTarget:self action:@selector(moreTapped) forControlEvents:UIControlEventTouchUpInside];
         [self.contentView addSubview:_moreButton];
@@ -63,6 +64,7 @@
     [super prepareForReuse];
     self.moreHandler = nil;
     self.rowView.active = NO;
+    [self.rowView.coverView sp_cancelCoverLoadAndReset];
 }
 
 @end
@@ -89,9 +91,20 @@
     return self;
 }
 
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    self.rowView.active = NO;
+    [self.rowView.coverView sp_cancelCoverLoadAndReset];
+}
+
 - (void)setHighlighted:(BOOL)highlighted {
     [super setHighlighted:highlighted];
-    self.contentView.alpha = highlighted ? 0.6 : 1;
+    [UIView animateWithDuration:0.12
+                          delay:0
+                        options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionCurveEaseOut
+                     animations:^{
+        self.contentView.alpha = highlighted ? 0.82 : 1.0;
+    } completion:nil];
 }
 
 @end
@@ -125,6 +138,7 @@
         _subtitleLabel.font = [SPTheme fontOfSize:12 weight:UIFontWeightRegular];
         _subtitleLabel.textColor = SPTheme.textSecondaryColor;
         _subtitleLabel.numberOfLines = 2;
+        _subtitleLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
         [self.contentView addSubview:_subtitleLabel];
 
         [_coverView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -162,12 +176,23 @@
     self.coverView.layer.cornerRadius = circular ? CGRectGetWidth(self.coverView.bounds) / 2.0 : 6.0;
 }
 
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    [self.coverView sp_cancelCoverLoadAndReset];
+}
+
 - (void)setHighlighted:(BOOL)highlighted {
     [super setHighlighted:highlighted];
-    [UIView animateWithDuration:0.15 animations:^{
-        self.contentView.transform = highlighted ? CGAffineTransformMakeScale(0.97, 0.97) : CGAffineTransformIdentity;
-        self.contentView.alpha = highlighted ? 0.75 : 1;
-    }];
+    BOOL reduceMotion = UIAccessibilityIsReduceMotionEnabled();
+    [UIView animateWithDuration:0.15
+                          delay:0
+                        options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionCurveEaseOut
+                     animations:^{
+        if (!reduceMotion) {
+            self.contentView.transform = highlighted ? CGAffineTransformMakeScale(0.96, 0.96) : CGAffineTransformIdentity;
+        }
+        self.contentView.alpha = highlighted ? 0.78 : 1.0;
+    } completion:nil];
 }
 
 @end

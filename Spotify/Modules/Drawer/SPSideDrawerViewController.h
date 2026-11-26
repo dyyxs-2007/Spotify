@@ -2,7 +2,7 @@
 //  SPSideDrawerViewController.h
 //  Spotify
 //
-//  左侧滑入个人抽屉界面：个人资料卡片、快捷导航（新动态/收听历史/设置/缓存）与登录退出操作。
+//  左侧滑入个人抽屉界面：个人资料卡片、个人音乐库速览、睡眠定时、快捷主题开关与账号管理。
 //
 
 #import <UIKit/UIKit.h>
@@ -11,6 +11,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef NS_ENUM(NSInteger, SPDrawerMenuAction) {
     SPDrawerMenuActionAuth = 0,
+    SPDrawerMenuActionSwitchAccount,
+    SPDrawerMenuActionLikedSongs,
+    SPDrawerMenuActionLibrary,
     SPDrawerMenuActionActivity,
     SPDrawerMenuActionHistory,
     SPDrawerMenuActionSettings,

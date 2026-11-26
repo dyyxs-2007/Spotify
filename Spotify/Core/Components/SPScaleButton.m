@@ -91,3 +91,13 @@
 }
 
 @end
+
+@implementation SPProgressSlider
+
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
+    CGFloat heightDelta = MAX(44.0 - CGRectGetHeight(self.bounds), 0);
+    CGRect expanded = CGRectInset(self.bounds, -10.0, -heightDelta * 0.5);
+    return CGRectContainsPoint(expanded, point);
+}
+
+@end

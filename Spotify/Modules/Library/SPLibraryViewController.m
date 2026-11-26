@@ -37,7 +37,7 @@
         _titleLabel.textColor = SPTheme.textPrimaryColor;
 
         _subtitleLabel = [UILabel new];
-        _subtitleLabel.font = [SPTheme fontOfSize:12 weight:UIFontWeightRegular];
+        _subtitleLabel.font = [SPTheme monospacedDigitFontOfSize:12 weight:UIFontWeightRegular];
         _subtitleLabel.textColor = SPTheme.textSecondaryColor;
 
         UIStackView *leftStack = [[UIStackView alloc] initWithArrangedSubviews:@[_titleLabel, _subtitleLabel]];
@@ -46,7 +46,10 @@
         [self addSubview:leftStack];
 
         UIButtonConfiguration *actionConfig = [UIButtonConfiguration plainButtonConfiguration];
-        actionConfig.contentInsets = NSDirectionalEdgeInsetsMake(0, 12, 0, 12);
+        actionConfig.contentInsets = NSDirectionalEdgeInsetsMake(0, 10, 0, 12);
+        actionConfig.image = [SPTheme symbol:@"plus" size:11.5 weight:UIImageSymbolWeightBold];
+        actionConfig.imagePadding = 4;
+        actionConfig.title = @"新建歌单";
         actionConfig.baseForegroundColor = SPTheme.textPrimaryColor;
         actionConfig.titleTextAttributesTransformer = ^NSDictionary<NSAttributedStringKey, id> *(NSDictionary<NSAttributedStringKey, id> *incoming) {
             NSMutableDictionary *attrs = [incoming mutableCopy];
@@ -55,7 +58,6 @@
         };
         _actionButton = [SPScaleButton buttonWithType:UIButtonTypeCustom];
         _actionButton.configuration = actionConfig;
-        [_actionButton setTitle:@"＋ 新建歌单" forState:UIControlStateNormal];
         _actionButton.backgroundColor = SPTheme.highlightColor;
         _actionButton.layer.cornerRadius = 15;
         _actionButton.layer.cornerCurve = kCACornerCurveContinuous;
@@ -90,7 +92,9 @@
     self.subtitleLabel.text = subtitle;
     self.actionButton.hidden = (actionTitle.length == 0);
     if (actionTitle.length > 0) {
-        [self.actionButton setTitle:actionTitle forState:UIControlStateNormal];
+        UIButtonConfiguration *cfg = [self.actionButton.configuration copy];
+        cfg.title = actionTitle;
+        self.actionButton.configuration = cfg;
     }
     self.actionHandler = handler;
 }
@@ -112,6 +116,7 @@
 
 @interface SPLibraryViewController () <UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, SPAuthObserver>
 @property (nonatomic, strong) UIView *topBar;
+@property (nonatomic, strong) UIView *topBarHairline;
 @property (nonatomic, strong) SPScaleButton *toggleLayoutButton;
 @property (nonatomic, strong) NSArray<UIButton *> *chipButtons;
 @property (nonatomic, assign) NSInteger selectedFilterIndex;
@@ -152,6 +157,11 @@
     [self loadData];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self rebuildSections];
+}
+
 - (void)musicSourceDidChange {
     self.remoteItems = @[];
     [self rebuildSections];
@@ -163,6 +173,9 @@
 }
 
 - (void)authServiceDidChangeUser:(SPAuthService *)authService {
+    // 切换账号瞬间立即清空上一个账号的云端歌单并重刷「我的音乐」，再拉取新账号数据
+    self.remoteItems = @[];
+    [self rebuildSections];
     [self loadData];
 }
 
@@ -170,6 +183,11 @@
     _topBar = [UIView new];
     _topBar.backgroundColor = SPTheme.backgroundColor;
     [self.view addSubview:_topBar];
+
+    _topBarHairline = [UIView new];
+    _topBarHairline.backgroundColor = SPTheme.separatorColor;
+    _topBarHairline.alpha = 0.0;
+    [_topBar addSubview:_topBarHairline];
 
     SPUserAvatarButton *avatarButton = [[SPUserAvatarButton alloc] initWithDiameter:34];
     [_topBar addSubview:avatarButton];
@@ -204,7 +222,7 @@
             attrs[NSFontAttributeName] = [SPTheme fontOfSize:13 weight:UIFontWeightMedium];
             return attrs;
         };
-        UIButton *btn = [UIButton buttonWithConfiguration:config primaryAction:nil];
+        SPScaleButton *btn = [SPScaleButton buttonWithConfiguration:config primaryAction:nil];
         btn.tag = i;
         [btn addTarget:self action:@selector(filterTapped:) forControlEvents:UIControlEventTouchUpInside];
         [buttons addObject:btn];
@@ -251,19 +269,23 @@
         make.centerY.equalTo(avatarButton);
     }];
     [_toggleLayoutButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.topBar).offset(-10);
+        make.right.equalTo(self.topBar).offset(-8);
         make.centerY.equalTo(avatarButton);
-        make.size.mas_equalTo(CGSizeMake(40, 40));
+        make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
     [addButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.toggleLayoutButton.mas_left);
+        make.right.equalTo(self.toggleLayoutButton.mas_left).offset(-2);
         make.centerY.equalTo(avatarButton);
-        make.size.mas_equalTo(CGSizeMake(40, 40));
+        make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
     [chipStack mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(avatarButton.mas_bottom).offset(14);
         make.left.equalTo(self.topBar).offset(SPMarginHorizontal);
         make.bottom.equalTo(self.topBar).offset(-10);
+    }];
+    [_topBarHairline mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.bottom.equalTo(self.topBar);
+        make.height.mas_equalTo(1.0 / UIScreen.mainScreen.scale);
     }];
     [_collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.topBar.mas_bottom);
@@ -312,6 +334,11 @@
         if (pl.identifier.length) [personalIds addObject:pl.identifier];
     }
 
+    for (SPArtist *artist in store.followedArtists) {
+        [rawPersonal addObject:artist];
+        if (artist.identifier.length) [personalIds addObject:artist.identifier];
+    }
+
     // 2. 若已登录真实网易云账号，把账号所属云歌单同步进「我的音乐」
     NSString *signedNeteaseUID = [SPNeteaseSession shared].userCookie.length > 0 ? [SPNeteaseSession shared].userId : nil;
     NSMutableArray<id<SPMediaItem>> *rawRecommended = [NSMutableArray array];
@@ -326,10 +353,6 @@
         }
         if (item.identifier.length && [personalIds containsObject:item.identifier]) continue;
         [rawRecommended addObject:item];
-    }
-
-    for (SPArtist *artist in store.followedArtists) {
-        [rawPersonal addObject:artist];
     }
 
     self.personalItems = [self itemsMatchingCurrentFilter:rawPersonal];
@@ -404,6 +427,7 @@
         [SPToast showMessage:@"已删除歌单"];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 
@@ -441,7 +465,7 @@
                          (unsigned long)self.personalItems.count];
         [header configureWithTitle:@"我的音乐"
                           subtitle:sub
-                       actionTitle:@"＋ 新建歌单"
+                       actionTitle:@"新建歌单"
                      actionHandler:^{ [weakSelf addTapped]; }];
     } else {
         NSString *sub = [NSString stringWithFormat:@"为你挑选的精选歌单、新碟与艺人 (%lu)",
@@ -489,6 +513,11 @@ minimumInteritemSpacingForSectionAtIndex:(NSInteger)section {
         return CGSizeMake(MAX(width, 100), width + 52);
     }
     return CGSizeMake(MAX(totalWidth - SPMarginHorizontal * 2, 100), 72);
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    CGFloat offsetY = MAX(0.0, scrollView.contentOffset.y);
+    self.topBarHairline.alpha = MIN(MAX(offsetY / 20.0, 0.0), 1.0);
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {

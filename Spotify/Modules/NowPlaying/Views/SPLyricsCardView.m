@@ -10,8 +10,10 @@
 #pragma mark - Lyric Line Cell
 
 @interface SPLyricCardLineCell : UITableViewCell
+@property (nonatomic, strong) UIStackView *contentStack;
 @property (nonatomic, strong) UILabel *lyricLabel;
 @property (nonatomic, strong) UILabel *translationLabel;
+@property (nonatomic, assign) BOOL activeScale;
 @end
 
 @implementation SPLyricCardLineCell
@@ -25,18 +27,21 @@
 
         _lyricLabel = [UILabel new];
         _lyricLabel.numberOfLines = 0;
-        _lyricLabel.font = [SPTheme fontOfSize:17 weight:UIFontWeightBold];
+        _lyricLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
+        // 固定使用高亮最大字号以确保 AutoLayout 行高始终完整预留，避免切行变大时截断长歌词
+        _lyricLabel.font = [SPTheme fontOfSize:18.5 weight:UIFontWeightBold];
 
         _translationLabel = [UILabel new];
         _translationLabel.numberOfLines = 0;
+        _translationLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
         _translationLabel.font = [SPTheme fontOfSize:13 weight:UIFontWeightMedium];
 
-        UIStackView *stack = [[UIStackView alloc] initWithArrangedSubviews:@[_lyricLabel, _translationLabel]];
-        stack.axis = UILayoutConstraintAxisVertical;
-        stack.spacing = 4;
-        [self.contentView addSubview:stack];
+        _contentStack = [[UIStackView alloc] initWithArrangedSubviews:@[_lyricLabel, _translationLabel]];
+        _contentStack.axis = UILayoutConstraintAxisVertical;
+        _contentStack.spacing = 4;
+        [self.contentView addSubview:_contentStack];
 
-        [stack mas_makeConstraints:^(MASConstraintMaker *make) {
+        [_contentStack mas_makeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(self.contentView).offset(8);
             make.bottom.equalTo(self.contentView).offset(-8);
             make.left.equalTo(self.contentView).offset(18);
@@ -46,35 +51,80 @@
     return self;
 }
 
+- (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
+    [super setHighlighted:highlighted animated:animated];
+    CGFloat alpha = highlighted ? 0.62 : 1.0;
+    if (animated && !UIAccessibilityIsReduceMotionEnabled()) {
+        [UIView animateWithDuration:0.12
+                              delay:0
+                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction
+                         animations:^{
+            self.contentStack.alpha = alpha;
+        } completion:nil];
+    } else {
+        self.contentStack.alpha = alpha;
+    }
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    [self.contentView layoutIfNeeded];
+    [self applyScaleTransform];
+}
+
+- (void)applyScaleTransform {
+    CGFloat w = CGRectGetWidth(self.contentStack.bounds);
+    if (self.activeScale || UIAccessibilityIsReduceMotionEnabled() || w <= 0) {
+        self.contentStack.transform = CGAffineTransformIdentity;
+        return;
+    }
+    CGFloat s = 0.94;
+    CGFloat tx = -w * (1.0 - s) * 0.5;
+    self.contentStack.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(s, s),
+                                                          CGAffineTransformMakeTranslation(tx, 0));
+}
+
 - (void)configureWithLine:(SPLyricLine *)line
                  isSynced:(BOOL)isSynced
                  isActive:(BOOL)isActive
                    isPast:(BOOL)isPast
-          showTranslation:(BOOL)showTranslation {
+          showTranslation:(BOOL)showTranslation
+                 animated:(BOOL)animated {
     self.lyricLabel.text = line.text;
     BOOL hasTrans = (showTranslation && line.translation.length > 0);
     self.translationLabel.hidden = !hasTrans;
     self.translationLabel.text = line.translation;
 
+    self.activeScale = (!isSynced || isActive);
+    UIColor *lyricColor = nil;
+    UIColor *transColor = nil;
     if (!isSynced) {
-        self.lyricLabel.font = [SPTheme fontOfSize:16 weight:UIFontWeightSemibold];
-        self.lyricLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.86];
-        self.translationLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.55];
-        return;
+        lyricColor = [UIColor colorWithWhite:1.0 alpha:0.86];
+        transColor = [UIColor colorWithWhite:1.0 alpha:0.55];
+    } else if (isActive) {
+        lyricColor = UIColor.whiteColor;
+        transColor = [UIColor colorWithWhite:1.0 alpha:0.86];
+    } else if (isPast) {
+        lyricColor = [UIColor colorWithWhite:1.0 alpha:0.42];
+        transColor = [UIColor colorWithWhite:1.0 alpha:0.30];
+    } else {
+        lyricColor = [UIColor colorWithWhite:1.0 alpha:0.65];
+        transColor = [UIColor colorWithWhite:1.0 alpha:0.46];
     }
 
-    if (isActive) {
-        self.lyricLabel.font = [SPTheme fontOfSize:18.5 weight:UIFontWeightBold];
-        self.lyricLabel.textColor = UIColor.whiteColor;
-        self.translationLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.86];
-    } else if (isPast) {
-        self.lyricLabel.font = [SPTheme fontOfSize:16.5 weight:UIFontWeightSemibold];
-        self.lyricLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.42];
-        self.translationLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.30];
+    void (^apply)(void) = ^{
+        self.lyricLabel.textColor = lyricColor;
+        self.translationLabel.textColor = transColor;
+        [self applyScaleTransform];
+    };
+    if (animated && !UIAccessibilityIsReduceMotionEnabled()) {
+        [UIView animateWithDuration:0.22
+                              delay:0
+                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction
+                         animations:apply
+                         completion:nil];
     } else {
-        self.lyricLabel.font = [SPTheme fontOfSize:16.5 weight:UIFontWeightSemibold];
-        self.lyricLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.65];
-        self.translationLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.46];
+        apply();
     }
 }
 
@@ -86,6 +136,8 @@
 @property (nonatomic, strong) UILabel *headerLabel;
 @property (nonatomic, strong) SPScaleButton *translationButton;
 @property (nonatomic, strong) SPScaleButton *expandButton;
+@property (nonatomic, strong) UIView *tableContainer;
+@property (nonatomic, strong) CAGradientLayer *fadeMaskLayer;
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) UIActivityIndicatorView *spinner;
 @property (nonatomic, strong) UILabel *emptyLabel;
@@ -147,21 +199,36 @@
 
     UIStackView *rightBar = [[UIStackView alloc] initWithArrangedSubviews:@[_translationButton, _expandButton]];
     rightBar.axis = UILayoutConstraintAxisHorizontal;
-    rightBar.spacing = 8;
+    rightBar.spacing = 14;
     rightBar.alignment = UIStackViewAlignmentCenter;
     [headerBar addSubview:rightBar];
+
+    _tableContainer = [UIView new];
+    _tableContainer.backgroundColor = UIColor.clearColor;
+    [self addSubview:_tableContainer];
+
+    _fadeMaskLayer = [CAGradientLayer layer];
+    _fadeMaskLayer.colors = @[
+        (__bridge id)[UIColor colorWithWhite:0 alpha:0.0].CGColor,
+        (__bridge id)[UIColor colorWithWhite:0 alpha:1.0].CGColor,
+        (__bridge id)[UIColor colorWithWhite:0 alpha:1.0].CGColor,
+        (__bridge id)[UIColor colorWithWhite:0 alpha:0.0].CGColor,
+    ];
+    _fadeMaskLayer.locations = @[@0.0, @0.08, @0.86, @1.0];
+    _tableContainer.layer.mask = _fadeMaskLayer;
 
     _tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
     _tableView.backgroundColor = UIColor.clearColor;
     _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     _tableView.showsVerticalScrollIndicator = NO;
+    _tableView.bounces = NO;
     _tableView.rowHeight = UITableViewAutomaticDimension;
-    _tableView.estimatedRowHeight = 44;
-    _tableView.contentInset = UIEdgeInsetsMake(4, 0, 26, 0);
+    _tableView.estimatedRowHeight = 46;
+    _tableView.contentInset = UIEdgeInsetsMake(18, 0, 32, 0);
     _tableView.dataSource = self;
     _tableView.delegate = self;
     [_tableView registerClass:SPLyricCardLineCell.class forCellReuseIdentifier:[SPLyricCardLineCell reuseId]];
-    [self addSubview:_tableView];
+    [_tableContainer addSubview:_tableView];
 
     _spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
     _spinner.color = [UIColor colorWithWhite:1.0 alpha:0.85];
@@ -178,7 +245,7 @@
 
     [headerBar mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.left.right.equalTo(self);
-        make.height.mas_equalTo(48);
+        make.height.mas_equalTo(54);
     }];
     [_headerLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(headerBar).offset(18);
@@ -192,23 +259,34 @@
         make.size.mas_equalTo(CGSizeMake(30, 30));
     }];
     [rightBar mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(headerBar).offset(-14);
+        make.right.equalTo(headerBar).offset(-12);
         make.centerY.equalTo(headerBar);
     }];
-    [_tableView mas_makeConstraints:^(MASConstraintMaker *make) {
+    [_tableContainer mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(headerBar.mas_bottom);
         make.left.right.bottom.equalTo(self);
     }];
+    [_tableView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self.tableContainer);
+    }];
     [_spinner mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.center.equalTo(self.tableView);
+        make.center.equalTo(self.tableContainer);
     }];
     [_emptyLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.center.equalTo(self.tableView);
+        make.center.equalTo(self.tableContainer);
         make.left.equalTo(self).offset(24);
         make.right.equalTo(self).offset(-24);
     }];
 
     [self updateTranslationButtonAppearance];
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    self.fadeMaskLayer.frame = self.tableContainer.bounds;
+    [CATransaction commit];
 }
 
 #pragma mark - Public API
@@ -294,17 +372,28 @@
                        isSynced:self.document.isSynced
                        isActive:active
                          isPast:past
-                showTranslation:self.showTranslation];
+                showTranslation:self.showTranslation
+                       animated:YES];
     }
 }
 
 #pragma mark - Actions
 
+- (void)setShowTranslation:(BOOL)showTranslation {
+    if (_showTranslation == showTranslation) return;
+    _showTranslation = showTranslation;
+    [self updateTranslationButtonAppearance];
+    [self.tableView reloadData];
+    if (self.activeLineIndex >= 0 && self.activeLineIndex < (NSInteger)self.document.lines.count) {
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:self.activeLineIndex inSection:0]
+                              atScrollPosition:UITableViewScrollPositionMiddle
+                                      animated:NO];
+    }
+}
+
 - (void)translationTapped {
     [SPHaptics selection];
     self.showTranslation = !self.showTranslation;
-    [self updateTranslationButtonAppearance];
-    [self.tableView reloadData];
 }
 
 - (void)expandTapped {
@@ -327,7 +416,8 @@
                    isSynced:self.document.isSynced
                    isActive:active
                      isPast:past
-            showTranslation:self.showTranslation];
+            showTranslation:self.showTranslation
+                   animated:NO];
     return cell;
 }
 

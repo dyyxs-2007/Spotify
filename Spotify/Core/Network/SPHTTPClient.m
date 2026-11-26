@@ -28,6 +28,10 @@ NSErrorDomain const SPHTTPErrorDomain = @"com.dyyxs.spotify.http";
     return self;
 }
 
+- (void)dealloc {
+    [_session finishTasksAndInvalidate];
+}
+
 - (NSURL *)endpointURLForPath:(NSString *)path queryItems:(nullable NSArray<NSURLQueryItem *> *)extraItems {
     NSString *trimmedPath = [path hasPrefix:@"/"] ? [path substringFromIndex:1] : path;
     NSURL *raw = [self.baseURL URLByAppendingPathComponent:trimmedPath];

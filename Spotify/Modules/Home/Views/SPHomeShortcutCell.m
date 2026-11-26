@@ -26,12 +26,14 @@
         _coverView = [UIImageView new];
         _coverView.contentMode = UIViewContentModeScaleAspectFill;
         _coverView.clipsToBounds = YES;
+        _coverView.sp_suppressCoverBorder = YES;
         [self.contentView addSubview:_coverView];
 
         _titleLabel = [UILabel new];
         _titleLabel.font = [SPTheme fontOfSize:13 weight:UIFontWeightBold];
         _titleLabel.textColor = SPTheme.textPrimaryColor;
         _titleLabel.numberOfLines = 2;
+        _titleLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
         [self.contentView addSubview:_titleLabel];
 
         [_coverView mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -59,12 +61,23 @@
     [self.coverView sp_setCoverWithItem:item];
 }
 
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    [self.coverView sp_cancelCoverLoadAndReset];
+}
+
 - (void)setHighlighted:(BOOL)highlighted {
     [super setHighlighted:highlighted];
-    [UIView animateWithDuration:0.12 animations:^{
+    BOOL reduceMotion = UIAccessibilityIsReduceMotionEnabled();
+    [UIView animateWithDuration:0.15
+                          delay:0
+                        options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionCurveEaseOut
+                     animations:^{
         self.contentView.backgroundColor = highlighted ? SPTheme.pressedColor : SPTheme.highlightColor;
-        self.contentView.transform = highlighted ? CGAffineTransformMakeScale(0.98, 0.98) : CGAffineTransformIdentity;
-    }];
+        if (!reduceMotion) {
+            self.contentView.transform = highlighted ? CGAffineTransformMakeScale(0.96, 0.96) : CGAffineTransformIdentity;
+        }
+    } completion:nil];
 }
 
 @end

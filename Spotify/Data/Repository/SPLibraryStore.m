@@ -22,6 +22,9 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 @property (nonatomic, strong) NSMutableArray<SPTrack *> *likedStorage;
 @property (nonatomic, strong) NSMutableArray<SPPlaylist *> *playlistsStorage;
 @property (nonatomic, strong) NSMutableArray<SPArtist *> *followedArtistsStorage;
+@property (nonatomic, strong) NSMutableSet<NSString *> *savedCollectionIdsStorage;
+@property (nonatomic, strong, nullable) SPHTTPClient *syncHTTPClient;
+@property (nonatomic, copy, nullable) NSString *syncHTTPBaseURL;
 @end
 
 @implementation SPLibraryStore
@@ -38,6 +41,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
         _likedStorage = [NSMutableArray array];
         _playlistsStorage = [NSMutableArray array];
         _followedArtistsStorage = [NSMutableArray array];
+        _savedCollectionIdsStorage = [NSMutableSet set];
         _activeScopeKey = [self resolvedScopeKeyForCurrentUser];
         [self loadFromDisk];
         [[SPAuthService shared] addObserver:self];
@@ -64,8 +68,17 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
     return sanitized.length > 0 ? [sanitized copy] : @"guest";
 }
 
+- (void)ensureScopeMatchesCurrentUserLocked {
+    NSString *expected = [self resolvedScopeKeyForCurrentUser];
+    if (![self.activeScopeKey isEqualToString:expected]) {
+        self.activeScopeKey = expected;
+        [self loadFromDisk];
+    }
+}
+
 - (NSString *)currentScopeKey {
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         return self.activeScopeKey ?: @"guest";
     }
 }
@@ -82,6 +95,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 
 - (NSString *)currentStorageFilePath {
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         return [self storageFilePath];
     }
 }
@@ -96,6 +110,11 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 }
 
 - (void)authServiceDidChangeUser:(SPAuthService *)authService {
+    @synchronized (self) {
+        if ([self.activeScopeKey isEqualToString:[self resolvedScopeKeyForCurrentUser]]) {
+            return;
+        }
+    }
     [self reloadForCurrentUser];
 }
 
@@ -112,6 +131,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
     [self.likedStorage removeAllObjects];
     [self.playlistsStorage removeAllObjects];
     [self.followedArtistsStorage removeAllObjects];
+    [self.savedCollectionIdsStorage removeAllObjects];
 
     NSString *path = [self storageFilePath];
     NSData *data = [NSData dataWithContentsOfFile:path];
@@ -122,16 +142,22 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
             NSArray *liked = [NSArray yy_modelArrayWithClass:SPTrack.class json:dict[@"likedTracks"]];
             NSArray *playlists = [NSArray yy_modelArrayWithClass:SPPlaylist.class json:dict[@"userPlaylists"]];
             NSArray *artists = [NSArray yy_modelArrayWithClass:SPArtist.class json:dict[@"followedArtists"]];
+            NSArray *savedIds = [dict[@"savedCollectionIds"] isKindOfClass:NSArray.class] ? dict[@"savedCollectionIds"] : nil;
             if (liked) [self.likedStorage addObjectsFromArray:liked];
             if (playlists) [self.playlistsStorage addObjectsFromArray:playlists];
             if (artists) [self.followedArtistsStorage addObjectsFromArray:artists];
+            if (savedIds) {
+                for (id item in savedIds) {
+                    if ([item isKindOfClass:NSString.class]) [self.savedCollectionIdsStorage addObject:item];
+                }
+            }
             return;
         }
     }
 
     // 每个新账号首次初始化时拥有独立、干净的初始自建歌单与空的点赞列表
     SPPlaylist *starter = [SPPlaylist new];
-    starter.identifier = SPDefaultUserPlaylistId;
+    starter.identifier = [NSString stringWithFormat:@"%@_%@", SPDefaultUserPlaylistId, self.activeScopeKey.length ? self.activeScopeKey : @"guest"];
     starter.name = @"我的收藏歌单";
     starter.desc = @"点击任意歌曲右侧「···」即可收藏到这里";
     starter.creatorName = [SPAuthService shared].currentUser.nickname ?: @"你";
@@ -150,6 +176,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
         @"likedTracks": [likedJson isKindOfClass:NSArray.class] ? likedJson : @[],
         @"userPlaylists": [playlistsJson isKindOfClass:NSArray.class] ? playlistsJson : @[],
         @"followedArtists": [artistsJson isKindOfClass:NSArray.class] ? artistsJson : @[],
+        @"savedCollectionIds": self.savedCollectionIdsStorage.allObjects ?: @[],
     };
     NSData *data = [NSJSONSerialization dataWithJSONObject:payload options:0 error:nil];
     if (data) {
@@ -169,12 +196,14 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 
 - (NSArray<SPTrack *> *)likedTracks {
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         return [self.likedStorage copy];
     }
 }
 
 - (SPPlaylist *)likedSongsPlaylist {
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         SPPlaylist *pl = [SPPlaylist new];
         pl.identifier = SPLikedSongsPlaylistId;
         pl.name = @"已点赞的歌曲";
@@ -189,6 +218,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 - (BOOL)isTrackLiked:(NSString *)trackId {
     if (trackId.length == 0) return NO;
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         for (SPTrack *t in self.likedStorage) {
             if ([t.identifier isEqualToString:trackId]) return YES;
         }
@@ -200,6 +230,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
     if (!track || track.identifier.length == 0) return NO;
     BOOL likedNow = NO;
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         NSUInteger idx = [self.likedStorage indexOfObjectPassingTest:^BOOL(SPTrack *obj, NSUInteger i, BOOL *stop) {
             return [obj.identifier isEqualToString:track.identifier];
         }];
@@ -220,6 +251,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 
 - (NSArray<SPPlaylist *> *)userPlaylists {
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         return [self.playlistsStorage copy];
     }
 }
@@ -241,6 +273,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
     pl.tracks = @[];
 
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         pl.colorHex = [self paletteHexForIndex:self.playlistsStorage.count];
         [self.playlistsStorage insertObject:pl atIndex:0];
         [self saveToDisk];
@@ -253,6 +286,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
     if (playlistId.length == 0) return NO;
     BOOL deleted = NO;
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         NSUInteger idx = [self.playlistsStorage indexOfObjectPassingTest:^BOOL(SPPlaylist *obj, NSUInteger i, BOOL *stop) {
             return [obj.identifier isEqualToString:playlistId];
         }];
@@ -275,6 +309,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 
     BOOL added = NO;
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         for (SPPlaylist *pl in self.playlistsStorage) {
             if (![pl.identifier isEqualToString:playlistId]) continue;
             for (SPTrack *existing in pl.tracks) {
@@ -301,6 +336,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
     if (trackId.length == 0 || playlistId.length == 0) return NO;
     BOOL removed = NO;
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         if ([playlistId isEqualToString:SPLikedSongsPlaylistId]) {
             NSUInteger idx = [self.likedStorage indexOfObjectPassingTest:^BOOL(SPTrack *obj, NSUInteger i, BOOL *stop) {
                 return [obj.identifier isEqualToString:trackId];
@@ -337,9 +373,20 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
         return [self likedSongsPlaylist];
     }
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         for (SPPlaylist *pl in self.playlistsStorage) {
             if ([pl.identifier isEqualToString:playlistId]) {
-                return pl;
+                SPPlaylist *copy = [SPPlaylist new];
+                copy.identifier = pl.identifier;
+                copy.name = pl.name;
+                copy.desc = pl.desc;
+                copy.coverURL = pl.coverURL;
+                copy.colorHex = pl.colorHex;
+                copy.creatorName = pl.creatorName;
+                copy.creatorUserId = pl.creatorUserId;
+                copy.followerCount = pl.followerCount;
+                copy.tracks = [pl.tracks copy] ?: @[];
+                return copy;
             }
         }
     }
@@ -350,6 +397,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 
 - (NSArray<SPArtist *> *)followedArtists {
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         return [self.followedArtistsStorage copy];
     }
 }
@@ -357,6 +405,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 - (BOOL)isArtistFollowed:(nullable NSString *)artistId {
     if (artistId.length == 0) return NO;
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         for (SPArtist *ar in self.followedArtistsStorage) {
             if ([ar.identifier isEqualToString:artistId]) return YES;
         }
@@ -368,6 +417,7 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
     if (!artist || artist.identifier.length == 0) return NO;
     BOOL followedNow = NO;
     @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
         NSUInteger idx = [self.followedArtistsStorage indexOfObjectPassingTest:^BOOL(SPArtist *obj, NSUInteger i, BOOL *stop) {
             return [obj.identifier isEqualToString:artist.identifier];
         }];
@@ -387,15 +437,52 @@ static NSString * const SPDefaultUserPlaylistId = @"user_pl_default";
 
 - (void)syncFollowWithNeteaseIfSignedIn:(NSString *)artistId follow:(BOOL)follow {
     SPNeteaseSession *session = [SPNeteaseSession shared];
-    if (session.userCookie.length == 0 || artistId.length == 0) return;
-    NSURL *base = [NSURL URLWithString:[SPNeteaseSession baseURLString]];
+    NSString *cookie = session.userCookie;
+    if (cookie.length == 0 || artistId.length == 0) return;
+    NSString *baseStr = [SPNeteaseSession baseURLString];
+    NSURL *base = [NSURL URLWithString:baseStr];
     if (!base) return;
-    SPHTTPClient *client = [[SPHTTPClient alloc] initWithBaseURL:base];
+    SPHTTPClient *client = nil;
+    @synchronized (self) {
+        if (!self.syncHTTPClient || ![self.syncHTTPBaseURL isEqualToString:baseStr]) {
+            self.syncHTTPBaseURL = baseStr;
+            self.syncHTTPClient = [[SPHTTPClient alloc] initWithBaseURL:base];
+        }
+        client = self.syncHTTPClient;
+    }
     [client GET:@"/artist/sub"
      parameters:@{@"id": artistId, @"t": follow ? @1 : @0}
-         cookie:session.userCookie
+         cookie:cookie
     bypassCache:YES
      completion:^(NSDictionary *json, NSError *err) {}];
+}
+
+#pragma mark - Saved Collections
+
+- (BOOL)isCollectionSaved:(nullable NSString *)collectionId {
+    if (collectionId.length == 0) return NO;
+    @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
+        return [self.savedCollectionIdsStorage containsObject:collectionId];
+    }
+}
+
+- (BOOL)toggleSaveCollectionWithId:(NSString *)collectionId {
+    if (collectionId.length == 0) return NO;
+    BOOL savedNow = NO;
+    @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
+        if ([self.savedCollectionIdsStorage containsObject:collectionId]) {
+            [self.savedCollectionIdsStorage removeObject:collectionId];
+            savedNow = NO;
+        } else {
+            [self.savedCollectionIdsStorage addObject:collectionId];
+            savedNow = YES;
+        }
+        [self saveToDisk];
+    }
+    [self postDidUpdate];
+    return savedNow;
 }
 
 @end

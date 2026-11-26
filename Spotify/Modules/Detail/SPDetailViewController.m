@@ -7,6 +7,7 @@
 #import "SPDetailHeaderView.h"
 #import "SPGradientView.h"
 #import "SPSkeletonView.h"
+#import "SPScaleButton.h"
 #import "SPMediaCells.h"
 #import "SPMusicRepository.h"
 #import "SPLibraryStore.h"
@@ -28,7 +29,7 @@
 @property (nonatomic, strong, nullable) SPSkeletonView *skeletonView;
 @property (nonatomic, strong) UIView *navBar;
 @property (nonatomic, strong) UIView *navBarBackground;
-@property (nonatomic, strong) UIButton *backButton;
+@property (nonatomic, strong) SPScaleButton *backButton;
 @property (nonatomic, strong) UILabel *navTitleLabel;
 @property (nonatomic, strong) UIColor *currentThemeColor;
 @property (nonatomic, assign) CGFloat lastHeaderWidth;
@@ -99,10 +100,15 @@
         [self.headerView updateFollowState:[[SPLibraryStore shared] isArtistFollowed:self.mediaItem.identifier] animated:YES];
         return;
     }
+    [self.headerView updateLikeState:[[SPLibraryStore shared] isCollectionSaved:self.mediaItem.identifier] animated:YES];
     SPPlaylist *local = [[SPLibraryStore shared] localPlaylistWithId:self.mediaItem.identifier];
     if (local) {
         self.mediaItem = local;
         self.tracks = local.tracks ?: @[];
+        if (self.skeletonView) {
+            [self.skeletonView dismissAnimated:NO];
+            self.skeletonView = nil;
+        }
         self.navTitleLabel.text = local.title;
         [self.headerView configureWithItem:local
                                     tracks:self.tracks
@@ -110,6 +116,16 @@
                             shuffleEnabled:[SPPlayerService shared].isShuffleEnabled];
         [self updateHeaderLayout];
         [self.tableView reloadData];
+    } else if (self.mediaItem.mediaType == SPMediaTypePlaylist
+               && [[SPLibraryStore shared] isUserCreatedPlaylistId:self.mediaItem.identifier]
+               && self.navigationController) {
+        if (self.navigationController.topViewController == self) {
+            [self.navigationController popViewControllerAnimated:NO];
+        } else {
+            NSMutableArray<UIViewController *> *vcs = [self.navigationController.viewControllers mutableCopy];
+            [vcs removeObject:self];
+            [self.navigationController setViewControllers:vcs animated:NO];
+        }
     }
 }
 
@@ -128,7 +144,7 @@
     _tableView.dataSource = self;
     _tableView.delegate = self;
     _tableView.showsVerticalScrollIndicator = NO;
-    _tableView.contentInset = UIEdgeInsetsMake(44, 0, 24, 0);
+    _tableView.contentInset = UIEdgeInsetsMake(48, 0, 24, 0);
     [_tableView registerClass:SPMediaRowCell.class forCellReuseIdentifier:[SPMediaRowCell reuseId]];
     [self.view addSubview:_tableView];
 
@@ -137,6 +153,7 @@
     _headerView.playHandler = ^{ [weakSelf handleHeaderPlay]; };
     _headerView.shuffleHandler = ^{ [[SPPlayerService shared] toggleShuffle]; };
     _headerView.followHandler = ^{ [weakSelf handleFollowArtist]; };
+    _headerView.likeHandler = ^{ [weakSelf handleToggleSaveCollection]; };
     _headerView.moreHandler = ^{ [weakSelf handleHeaderMore]; };
     _headerView.dominantColorHandler = ^(UIColor *color) {
         weakSelf.currentThemeColor = color;
@@ -145,10 +162,13 @@
     [_headerView configureWithItem:self.mediaItem tracks:self.tracks isPlaying:[self isPlayingCurrentContext] shuffleEnabled:[SPPlayerService shared].isShuffleEnabled];
     if (self.mediaItem.mediaType == SPMediaTypeArtist) {
         [_headerView updateFollowState:[[SPLibraryStore shared] isArtistFollowed:self.mediaItem.identifier] animated:NO];
+    } else {
+        [_headerView updateLikeState:[[SPLibraryStore shared] isCollectionSaved:self.mediaItem.identifier] animated:NO];
     }
     _tableView.tableHeaderView = _headerView;
 
-    if (self.tracks.count == 0) {
+    BOOL isLocalPlaylist = ([[SPLibraryStore shared] localPlaylistWithId:self.mediaItem.identifier] != nil);
+    if (self.tracks.count == 0 && !isLocalPlaylist) {
         _skeletonView = [SPSkeletonView detailSkeletonView];
         [self.tableView addSubview:_skeletonView];
     }
@@ -160,8 +180,16 @@
     _navBarBackground.alpha = 0;
     [_navBar addSubview:_navBarBackground];
 
-    _backButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [_backButton setImage:[SPTheme symbol:@"chevron.left" size:18 weight:UIImageSymbolWeightSemibold] forState:UIControlStateNormal];
+    UIView *navHairline = [UIView new];
+    navHairline.backgroundColor = SPTheme.separatorColor;
+    [_navBarBackground addSubview:navHairline];
+    [navHairline mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.bottom.equalTo(self.navBarBackground);
+        make.height.mas_equalTo(1.0 / UIScreen.mainScreen.scale);
+    }];
+
+    _backButton = [SPScaleButton buttonWithType:UIButtonTypeSystem];
+    [_backButton sp_setSymbol:@"chevron.left" size:18 weight:UIImageSymbolWeightSemibold animated:NO];
     [_backButton addTarget:self action:@selector(backTapped) forControlEvents:UIControlEventTouchUpInside];
     [_navBar addSubview:_backButton];
 
@@ -182,14 +210,14 @@
     }];
     [_navBar mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.left.right.equalTo(self.view);
-        make.bottom.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(44);
+        make.bottom.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(48);
     }];
     [_navBarBackground mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.navBar);
     }];
     [_backButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self.navBar).offset(8);
-        make.bottom.equalTo(self.navBar);
+        make.bottom.equalTo(self.navBar).offset(-2);
         make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
     [_navTitleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -201,7 +229,7 @@
 
 - (void)updateThemeColorsAnimated:(BOOL)animated {
     UIColor *color = self.currentThemeColor ?: [UIColor sp_colorWithHex:0x3A2E5E];
-    BOOL isLight = (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleLight);
+    BOOL isLight = ([SPTheme resolvedTraitCollectionForView:self.view].userInterfaceStyle == UIUserInterfaceStyleLight);
     NSArray<UIColor *> *gradColors = isLight
         ? @[[color colorWithAlphaComponent:0.26], [color colorWithAlphaComponent:0.08], SPTheme.backgroundColor]
         : @[color, [color sp_darkenedBy:0.5], SPTheme.backgroundColor];
@@ -240,6 +268,11 @@
 - (void)updateHeaderLayout {
     CGFloat width = CGRectGetWidth(self.tableView.bounds);
     if (width <= 0) return;
+    if (fabs(CGRectGetWidth(self.headerView.frame) - width) > 0.5) {
+        self.headerView.frame = CGRectMake(0, 0, width, CGRectGetHeight(self.headerView.frame));
+    }
+    [self.headerView setNeedsLayout];
+    [self.headerView layoutIfNeeded];
     CGSize target = CGSizeMake(width, UILayoutFittingCompressedSize.height);
     CGFloat height = [self.headerView systemLayoutSizeFittingSize:target
                                     withHorizontalFittingPriority:UILayoutPriorityRequired
@@ -291,6 +324,8 @@
                         shuffleEnabled:[SPPlayerService shared].isShuffleEnabled];
     if (item.mediaType == SPMediaTypeArtist) {
         [self.headerView updateFollowState:[[SPLibraryStore shared] isArtistFollowed:item.identifier] animated:NO];
+    } else {
+        [self.headerView updateLikeState:[[SPLibraryStore shared] isCollectionSaved:item.identifier] animated:NO];
     }
     [self updateHeaderLayout];
     [self.tableView reloadData];
@@ -349,6 +384,13 @@
         : [NSString stringWithFormat:@"已取消关注 %@", artist.name ?: @""]];
 }
 
+- (void)handleToggleSaveCollection {
+    if (self.mediaItem.identifier.length == 0) return;
+    BOOL saved = [[SPLibraryStore shared] toggleSaveCollectionWithId:self.mediaItem.identifier];
+    [self.headerView updateLikeState:saved animated:YES];
+    [SPToast showMessage:saved ? @"已收藏到你的音乐库" : @"已从音乐库移除收藏"];
+}
+
 - (void)handleHeaderMore {
     UIAlertController *sheet = [UIAlertController alertControllerWithTitle:self.mediaItem.title
                                                                    message:nil
@@ -374,6 +416,7 @@
         }]];
     }
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 
@@ -403,7 +446,13 @@
         [SPToast showMessage:@"已添加到下一首播放"];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"立即播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        [[SPPlayerService shared] playTracks:weakSelf.tracks startIndex:index contextTitle:weakSelf.mediaItem.title];
+        NSUInteger currentIdx = [weakSelf.tracks indexOfObject:track];
+        if (currentIdx == NSNotFound && weakSelf.tracks.count > 0) {
+            currentIdx = (NSUInteger)MIN(MAX(index, 0), (NSInteger)weakSelf.tracks.count - 1);
+        }
+        if (currentIdx < weakSelf.tracks.count) {
+            [[SPPlayerService shared] playTracks:weakSelf.tracks startIndex:currentIdx contextTitle:weakSelf.mediaItem.title];
+        }
     }]];
     if ([store localPlaylistWithId:self.mediaItem.identifier] != nil) {
         [sheet addAction:[UIAlertAction actionWithTitle:@"从此歌单移除" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
@@ -412,6 +461,7 @@
         }]];
     }
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 

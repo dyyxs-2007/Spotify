@@ -36,6 +36,13 @@ static UIColor *SPDynamicColor(UIColor *darkColor, UIColor *lightColor) {
     return self.isDarkMode ? UIStatusBarStyleLightContent : UIStatusBarStyleDarkContent;
 }
 
++ (UITraitCollection *)resolvedTraitCollectionForView:(nullable UIView *)view {
+    if (view.window != nil) {
+        return view.traitCollection;
+    }
+    return [UITraitCollection traitCollectionWithUserInterfaceStyle:self.interfaceStyle];
+}
+
 + (void)applyInterfaceStyle:(UIUserInterfaceStyle)style animated:(BOOL)animated {
     UIUserInterfaceStyle resolved = (style == UIUserInterfaceStyleLight) ? UIUserInterfaceStyleLight : UIUserInterfaceStyleDark;
     [[NSUserDefaults standardUserDefaults] setInteger:resolved forKey:SPThemeInterfaceStyleDefaultsKey];
@@ -112,7 +119,7 @@ static UIColor *SPDynamicColor(UIColor *darkColor, UIColor *lightColor) {
 }
 
 + (UIColor *)accentColor {
-    return SPDynamicColor([UIColor sp_colorWithHex:0x1ED760], [UIColor sp_colorWithHex:0x16A34A]);
+    return SPDynamicColor([UIColor sp_colorWithHex:0x1ED760], [UIColor sp_colorWithHex:0x15803D]);
 }
 
 + (UIColor *)brandGreenColor {
@@ -165,6 +172,22 @@ static UIColor *SPDynamicColor(UIColor *darkColor, UIColor *lightColor) {
 + (UIImage *)symbol:(NSString *)name size:(CGFloat)size weight:(UIImageSymbolWeight)weight {
     UIImageSymbolConfiguration *config = [UIImageSymbolConfiguration configurationWithPointSize:size weight:weight];
     return [UIImage systemImageNamed:name withConfiguration:config];
+}
+
++ (void)configurePopoverForViewController:(UIViewController *)presentedVC
+                               sourceView:(nullable UIView *)sourceView
+                             presentingVC:(nullable UIViewController *)presentingVC {
+    UIPopoverPresentationController *popover = presentedVC.popoverPresentationController;
+    if (!popover) return;
+    UIView *anchor = sourceView ?: presentingVC.view;
+    if (!anchor) return;
+    popover.sourceView = anchor;
+    if (sourceView) {
+        popover.sourceRect = sourceView.bounds;
+    } else {
+        popover.sourceRect = CGRectMake(CGRectGetMidX(anchor.bounds), CGRectGetMidY(anchor.bounds), 1, 1);
+        popover.permittedArrowDirections = 0;
+    }
 }
 
 @end

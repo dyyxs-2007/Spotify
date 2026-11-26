@@ -7,6 +7,8 @@
 
 @interface SPHomeSectionHeaderView ()
 @property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) MASConstraint *leftConstraint;
+@property (nonatomic, strong) MASConstraint *rightConstraint;
 @end
 
 @implementation SPHomeSectionHeaderView
@@ -20,11 +22,19 @@
         _titleLabel.textColor = SPTheme.textPrimaryColor;
         [self addSubview:_titleLabel];
         [_titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.left.right.equalTo(self);
+            self.leftConstraint = make.left.equalTo(self).offset(0);
+            self.rightConstraint = make.right.equalTo(self).offset(0);
             make.bottom.equalTo(self).offset(-8);
         }];
     }
     return self;
+}
+
+- (void)setHorizontalInset:(CGFloat)horizontalInset {
+    if (_horizontalInset == horizontalInset) return;
+    _horizontalInset = horizontalInset;
+    self.leftConstraint.offset(horizontalInset);
+    self.rightConstraint.offset(-horizontalInset);
 }
 
 @end

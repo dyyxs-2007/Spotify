@@ -61,6 +61,11 @@
 - (void)fetchAllHomeSectionsWithCompletion:(void (^)(NSArray<SPHomeSection *> *, NSError *))completion {
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
         dispatch_group_t group = dispatch_group_create();
         __block NSArray<SPPlaylist *> *toplists = @[];
         __block NSArray<SPPlaylist *> *personalized = @[];
@@ -69,45 +74,49 @@
         __block NSArray<SPAlbum *> *newestAlbums = @[];
         __block NSArray<SPArtist *> *topArtists = @[];
         __block NSError *lastError = nil;
+        void (^recordError)(NSError *) = ^(NSError *err) {
+            if (!err) return;
+            @synchronized (group) { if (!lastError) lastError = err; }
+        };
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/toplist" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/toplist" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) toplists = [SPNeteaseParser playlistsFromArray:json[@"list"]];
-            else lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/personalized" parameters:@{@"limit": @14} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/personalized" parameters:@{@"limit": @14} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) personalized = [SPNeteaseParser playlistsFromArray:json[@"result"]];
-            else lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/dj/hot" parameters:@{@"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/dj/hot" parameters:@{@"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) podcasts = [SPNeteaseParser podcastRadiosFromArray:json[@"djRadios"]];
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/top/playlist" parameters:@{@"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/top/playlist" parameters:@{@"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) hotPlaylists = [SPNeteaseParser playlistsFromArray:json[@"playlists"]];
-            else lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/album/newest" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/album/newest" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) newestAlbums = [SPNeteaseParser albumsFromArray:json[@"albums"]];
-            else lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/top/artists" parameters:@{@"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/top/artists" parameters:@{@"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) topArtists = [SPNeteaseParser artistsFromArray:json[@"artists"]];
-            else lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
@@ -179,6 +188,11 @@
 - (void)fetchMusicHomeSectionsWithCompletion:(void (^)(NSArray<SPHomeSection *> *, NSError *))completion {
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
         dispatch_group_t group = dispatch_group_create();
         __block NSArray<SPPlaylist *> *hqPlaylists = @[];
         __block NSArray<SPAlbum *> *newAlbums = @[];
@@ -187,41 +201,45 @@
         __block NSArray<SPPlaylist *> *westernPlaylists = @[];
         __block NSArray<SPPlaylist *> *rockPlaylists = @[];
         __block NSError *lastError = nil;
+        void (^recordError)(NSError *) = ^(NSError *err) {
+            if (!err) return;
+            @synchronized (group) { if (!lastError) lastError = err; }
+        };
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/top/playlist/highquality" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/top/playlist/highquality" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) hqPlaylists = [SPNeteaseParser playlistsFromArray:json[@"playlists"]];
-            else lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/album/new" parameters:@{@"area": @"ALL", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/album/new" parameters:@{@"area": @"ALL", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) newAlbums = [SPNeteaseParser albumsFromArray:json[@"albums"]];
-            else if (!lastError) lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/top/playlist" parameters:@{@"cat": @"华语", @"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/top/playlist" parameters:@{@"cat": @"华语", @"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) cnPlaylists = [SPNeteaseParser playlistsFromArray:json[@"playlists"]];
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/top/artists" parameters:@{@"limit": @10, @"offset": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/top/artists" parameters:@{@"limit": @10, @"offset": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) musicArtists = [SPNeteaseParser artistsFromArray:json[@"artists"]];
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/top/playlist" parameters:@{@"cat": @"欧美", @"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/top/playlist" parameters:@{@"cat": @"欧美", @"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) westernPlaylists = [SPNeteaseParser playlistsFromArray:json[@"playlists"]];
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/top/playlist" parameters:@{@"cat": @"摇滚", @"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/top/playlist" parameters:@{@"cat": @"摇滚", @"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) rockPlaylists = [SPNeteaseParser playlistsFromArray:json[@"playlists"]];
             dispatch_group_leave(group);
         }];
@@ -282,6 +300,11 @@
 - (void)fetchPodcastHomeSectionsWithCompletion:(void (^)(NSArray<SPHomeSection *> *, NSError *))completion {
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
         dispatch_group_t group = dispatch_group_create();
         __block NSArray<SPPlaylist *> *hotHead = @[];
         __block NSArray<SPPlaylist *> *toplistRadios = @[];
@@ -289,35 +312,39 @@
         __block NSArray<SPPlaylist *> *editorRadios = @[];
         __block NSArray<SPPlaylist *> *moreHotRadios = @[];
         __block NSError *lastError = nil;
+        void (^recordError)(NSError *) = ^(NSError *err) {
+            if (!err) return;
+            @synchronized (group) { if (!lastError) lastError = err; }
+        };
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/dj/hot" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/dj/hot" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) hotHead = [SPNeteaseParser podcastRadiosFromArray:json[@"djRadios"]];
-            else lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/dj/toplist" parameters:@{@"type": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/dj/toplist" parameters:@{@"type": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) toplistRadios = [SPNeteaseParser podcastRadiosFromArray:json[@"toplist"]];
-            else if (!lastError) lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/dj/personalize/recommend" parameters:@{@"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/dj/personalize/recommend" parameters:@{@"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) personalizedRadios = [SPNeteaseParser podcastRadiosFromArray:json[@"data"]];
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/dj/recommend" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/dj/recommend" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) editorRadios = [SPNeteaseParser podcastRadiosFromArray:json[@"djRadios"]];
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/dj/hot" parameters:@{@"limit": @10, @"offset": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/dj/hot" parameters:@{@"limit": @10, @"offset": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) moreHotRadios = [SPNeteaseParser podcastRadiosFromArray:json[@"djRadios"]];
             dispatch_group_leave(group);
         }];
@@ -391,17 +418,26 @@
 
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(@[], NO, nil);
+            return;
+        }
         dispatch_group_t group = dispatch_group_create();
         NSMutableArray<SPHomeSection *> *slots = [NSMutableArray arrayWithObjects:NSNull.null, NSNull.null, NSNull.null, nil];
         __block NSError *lastError = nil;
+        void (^recordError)(NSError *) = ^(NSError *err) {
+            if (!err) return;
+            @synchronized (group) { if (!lastError) lastError = err; }
+        };
 
         void (^loadPlaylistCat)(NSInteger, NSString *, NSString *) = ^(NSInteger idx, NSString *title, NSString *cat) {
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/top/playlist"
-                      parameters:@{@"cat": cat, @"order": @"hot", @"limit": @10}
-                          cookie:cookie
-                     bypassCache:NO
-                      completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/top/playlist"
+                        parameters:@{@"cat": cat, @"order": @"hot", @"limit": @10}
+                            cookie:cookie
+                       bypassCache:NO
+                        completion:^(NSDictionary *json, NSError *err) {
                 NSArray<SPPlaylist *> *pls = [SPNeteaseParser playlistsFromArray:json[@"playlists"]];
                 if (pls.count > 0) {
                     SPHomeSection *sec = [SPHomeSection new];
@@ -409,8 +445,8 @@
                     sec.style = SPHomeSectionStyleCard;
                     sec.items = pls;
                     @synchronized (slots) { slots[idx] = sec; }
-                } else if (err) {
-                    lastError = err;
+                } else {
+                    recordError(err);
                 }
                 dispatch_group_leave(group);
             }];
@@ -420,7 +456,7 @@
             loadPlaylistCat(0, @"华语金曲精选", @"华语");
             loadPlaylistCat(1, @"流行风向标", @"流行");
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/toplist" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/toplist" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 NSArray<SPPlaylist *> *tops = [SPNeteaseParser playlistsFromArray:json[@"list"]];
                 if (tops.count > 4) {
                     NSRange range = NSMakeRange(4, MIN((NSUInteger)10, tops.count - 4));
@@ -429,8 +465,8 @@
                     sec.style = SPHomeSectionStyleCard;
                     sec.items = [tops subarrayWithRange:range];
                     @synchronized (slots) { slots[2] = sec; }
-                } else if (err) {
-                    lastError = err;
+                } else {
+                    recordError(err);
                 }
                 dispatch_group_leave(group);
             }];
@@ -438,7 +474,7 @@
             loadPlaylistCat(0, @"摇滚与现场能量", @"摇滚");
             loadPlaylistCat(1, @"民谣与温柔时刻", @"民谣");
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/top/artists" parameters:@{@"limit": @10, @"offset": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/top/artists" parameters:@{@"limit": @10, @"offset": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 NSArray<SPArtist *> *artists = [SPNeteaseParser artistsFromArray:json[@"artists"]];
                 if (artists.count > 0) {
                     SPHomeSection *sec = [SPHomeSection new];
@@ -446,8 +482,8 @@
                     sec.style = SPHomeSectionStyleArtist;
                     sec.items = artists;
                     @synchronized (slots) { slots[2] = sec; }
-                } else if (err) {
-                    lastError = err;
+                } else {
+                    recordError(err);
                 }
                 dispatch_group_leave(group);
             }];
@@ -455,7 +491,7 @@
             loadPlaylistCat(0, @"电子节拍空间", @"电子");
             loadPlaylistCat(1, @"轻音乐与专注", @"轻音乐");
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/album/new" parameters:@{@"limit": @10, @"offset": @0} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/album/new" parameters:@{@"limit": @10, @"offset": @0} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 NSArray<SPAlbum *> *albums = [SPNeteaseParser albumsFromArray:json[@"albums"]];
                 if (albums.count > 0) {
                     SPHomeSection *sec = [SPHomeSection new];
@@ -463,8 +499,8 @@
                     sec.style = SPHomeSectionStyleCard;
                     sec.items = albums;
                     @synchronized (slots) { slots[2] = sec; }
-                } else if (err) {
-                    lastError = err;
+                } else {
+                    recordError(err);
                 }
                 dispatch_group_leave(group);
             }];
@@ -476,7 +512,7 @@
             loadPlaylistCat(0, @"ACG 与二次元", @"ACG");
             loadPlaylistCat(1, @"说唱与街头节拍", @"说唱");
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/top/artists" parameters:@{@"limit": @10, @"offset": @20} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/top/artists" parameters:@{@"limit": @10, @"offset": @20} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 NSArray<SPArtist *> *artists = [SPNeteaseParser artistsFromArray:json[@"artists"]];
                 if (artists.count > 0) {
                     SPHomeSection *sec = [SPHomeSection new];
@@ -484,8 +520,8 @@
                     sec.style = SPHomeSectionStyleArtist;
                     sec.items = artists;
                     @synchronized (slots) { slots[2] = sec; }
-                } else if (err) {
-                    lastError = err;
+                } else {
+                    recordError(err);
                 }
                 dispatch_group_leave(group);
             }];
@@ -520,13 +556,22 @@
     }
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(@[], NO, nil);
+            return;
+        }
         dispatch_group_t group = dispatch_group_create();
         NSMutableArray *slots = [NSMutableArray arrayWithObjects:NSNull.null, NSNull.null, nil];
         __block NSError *lastError = nil;
+        void (^recordError)(NSError *) = ^(NSError *err) {
+            if (!err) return;
+            @synchronized (group) { if (!lastError) lastError = err; }
+        };
 
         void (^loadCat)(NSInteger, NSString *, NSString *) = ^(NSInteger idx, NSString *title, NSString *cat) {
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/top/playlist" parameters:@{@"cat": cat, @"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/top/playlist" parameters:@{@"cat": cat, @"order": @"hot", @"limit": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 NSArray<SPPlaylist *> *pls = [SPNeteaseParser playlistsFromArray:json[@"playlists"]];
                 if (pls.count > 0) {
                     SPHomeSection *sec = [SPHomeSection new];
@@ -534,8 +579,8 @@
                     sec.style = SPHomeSectionStyleCard;
                     sec.items = pls;
                     @synchronized (slots) { slots[idx] = sec; }
-                } else if (err) {
-                    lastError = err;
+                } else {
+                    recordError(err);
                 }
                 dispatch_group_leave(group);
             }];
@@ -547,7 +592,7 @@
         } else if (page == 2) {
             loadCat(0, @"说唱与节奏律动", @"说唱");
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/album/new" parameters:@{@"area": @"ALL", @"limit": @10, @"offset": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/album/new" parameters:@{@"area": @"ALL", @"limit": @10, @"offset": @10} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 NSArray<SPAlbum *> *albums = [SPNeteaseParser albumsFromArray:json[@"albums"]];
                 if (albums.count > 0) {
                     SPHomeSection *sec = [SPHomeSection new];
@@ -555,13 +600,15 @@
                     sec.style = SPHomeSectionStyleCard;
                     sec.items = albums;
                     @synchronized (slots) { slots[1] = sec; }
+                } else {
+                    recordError(err);
                 }
                 dispatch_group_leave(group);
             }];
         } else if (page == 3) {
             loadCat(0, @"古典与器乐演奏", @"古典");
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/top/artists" parameters:@{@"limit": @10, @"offset": @16} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/top/artists" parameters:@{@"limit": @10, @"offset": @16} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 NSArray<SPArtist *> *artists = [SPNeteaseParser artistsFromArray:json[@"artists"]];
                 if (artists.count > 0) {
                     SPHomeSection *sec = [SPHomeSection new];
@@ -569,6 +616,8 @@
                     sec.style = SPHomeSectionStyleArtist;
                     sec.items = artists;
                     @synchronized (slots) { slots[1] = sec; }
+                } else {
+                    recordError(err);
                 }
                 dispatch_group_leave(group);
             }];
@@ -602,7 +651,12 @@
     NSString *title = (page == 1) ? @"深度播客探索" : @"更多精选电台";
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
-        [weakSelf.client GET:@"/dj/hot"
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(@[], NO, nil);
+            return;
+        }
+        [strongSelf.client GET:@"/dj/hot"
                   parameters:@{@"limit": @10, @"offset": @(offset)}
                       cookie:cookie
                  bypassCache:NO
@@ -629,20 +683,29 @@
 - (void)fetchSearchCategoriesWithCompletion:(void (^)(NSArray<SPSearchCategory *> *, NSError *))completion {
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
         dispatch_group_t group = dispatch_group_create();
         __block NSArray *rawTags = @[];
         __block NSMutableArray<NSString *> *covers = [NSMutableArray array];
         __block NSError *lastError = nil;
+        void (^recordError)(NSError *) = ^(NSError *err) {
+            if (!err) return;
+            @synchronized (group) { if (!lastError) lastError = err; }
+        };
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/playlist/hot" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/playlist/hot" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) rawTags = [SPNeteaseParser arrayValue:json[@"tags"]] ?: @[];
-            else lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/toplist" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/toplist" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             NSArray<SPPlaylist *> *lists = [SPNeteaseParser playlistsFromArray:json[@"list"]];
             for (SPPlaylist *pl in lists) {
                 if (pl.coverURL.length > 0) [covers addObject:pl.coverURL];
@@ -672,7 +735,12 @@
 
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
-        [weakSelf.client GET:@"/search"
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
+        [strongSelf.client GET:@"/search"
                   parameters:@{@"keywords": trimmed, @"type": @1018}
                       cookie:cookie
                  bypassCache:NO
@@ -707,12 +775,16 @@
     SPSearchResult *result = [SPSearchResult new];
     result.keyword = keyword;
     __block NSError *lastError = nil;
+    void (^recordError)(NSError *) = ^(NSError *err) {
+        if (!err) return;
+        @synchronized (group) { if (!lastError) lastError = err; }
+    };
 
     dispatch_group_enter(group);
     [self.client GET:@"/cloudsearch" parameters:@{@"keywords": keyword, @"type": @1, @"limit": @20} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
         NSDictionary *r = [SPNeteaseParser dictValue:json[@"result"]];
         if (r) result.tracks = [SPNeteaseParser tracksFromArray:r[@"songs"] fallbackAlbum:nil];
-        else lastError = err;
+        else recordError(err);
         dispatch_group_leave(group);
     }];
 
@@ -760,24 +832,33 @@
     }
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
         dispatch_group_t group = dispatch_group_create();
         __block SPPlaylist *detailPl = nil;
         __block NSArray<SPTrack *> *fullTracks = @[];
         __block NSError *lastError = nil;
+        void (^recordError)(NSError *) = ^(NSError *err) {
+            if (!err) return;
+            @synchronized (group) { if (!lastError) lastError = err; }
+        };
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/playlist/detail" parameters:@{@"id": playlistId} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/playlist/detail" parameters:@{@"id": playlistId} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             detailPl = [SPNeteaseParser playlistFromJSON:[SPNeteaseParser dictValue:json[@"playlist"]]];
-            if (!detailPl && err) lastError = err;
+            if (!detailPl) recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/playlist/track/all" parameters:@{@"id": playlistId, @"limit": @50, @"offset": @0} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/playlist/track/all" parameters:@{@"id": playlistId, @"limit": @50, @"offset": @0} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) {
                 fullTracks = [SPNeteaseParser tracksFromArray:json[@"songs"] fallbackAlbum:nil];
-            } else if (err && !lastError) {
-                lastError = err;
+            } else {
+                recordError(err);
             }
             dispatch_group_leave(group);
         }];
@@ -807,23 +888,32 @@
     }
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
         dispatch_group_t group = dispatch_group_create();
         __block SPPlaylist *radio = nil;
         __block NSArray *rawPrograms = @[];
         __block NSError *lastError = nil;
+        void (^recordError)(NSError *) = ^(NSError *err) {
+            if (!err) return;
+            @synchronized (group) { if (!lastError) lastError = err; }
+        };
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/dj/detail" parameters:@{@"rid": radioId} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/dj/detail" parameters:@{@"rid": radioId} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             radio = [SPNeteaseParser podcastRadioFromJSON:[SPNeteaseParser dictValue:json[@"data"]]];
-            if (!radio && err) lastError = err;
+            if (!radio) recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/dj/program" parameters:@{@"rid": radioId, @"limit": @30, @"offset": @0} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/dj/program" parameters:@{@"rid": radioId, @"limit": @30, @"offset": @0} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             NSArray *arr = [SPNeteaseParser arrayValue:json[@"programs"]];
             if (arr) rawPrograms = arr;
-            else if (err && !lastError) lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
@@ -854,7 +944,12 @@
     }
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
-        [weakSelf.client GET:@"/album" parameters:@{@"id": albumId} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
+        [strongSelf.client GET:@"/album" parameters:@{@"id": albumId} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             SPAlbum *album = [SPNeteaseParser albumFromJSON:[SPNeteaseParser dictValue:json[@"album"]]];
             if (!album) {
                 completion(nil, [weakSelf musicErrorFrom:err fallbackCode:SPMusicErrorNotFound fallbackMessage:@"专辑加载失败"]);
@@ -874,7 +969,12 @@
     }
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
-        [weakSelf.client GET:@"/artists" parameters:@{@"id": artistId} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
+        [strongSelf.client GET:@"/artists" parameters:@{@"id": artistId} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             SPArtist *artist = [SPNeteaseParser artistFromJSON:[SPNeteaseParser dictValue:json[@"artist"]]];
             NSArray<SPTrack *> *tracks = [SPNeteaseParser tracksFromArray:json[@"hotSongs"] fallbackAlbum:nil];
             if (!artist && tracks.count == 0) {
@@ -892,39 +992,49 @@
     __weak typeof(self) weakSelf = self;
     SPNeteaseSession *session = [SPNeteaseSession shared];
     [session ensureCookieWithClient:self.client completion:^(NSString *cookie) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
         dispatch_group_t group = dispatch_group_create();
         __block NSArray<SPPlaylist *> *playlists = @[];
         __block NSArray<SPPlaylist *> *extraPlaylists = @[];
         __block NSArray<SPAlbum *> *albums = @[];
         __block NSArray<SPArtist *> *artists = @[];
         __block NSError *lastError = nil;
+        void (^recordError)(NSError *) = ^(NSError *err) {
+            if (!err) return;
+            @synchronized (group) { if (!lastError) lastError = err; }
+        };
 
         NSString *uid = session.userId;
-        if (uid.length > 0 && session.userCookie.length > 0) {
+        NSString *userCookie = session.userCookie;
+        if (uid.length > 0 && userCookie.length > 0) {
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/user/playlist"
-                      parameters:@{@"uid": uid, @"limit": @20}
-                          cookie:session.userCookie
-                     bypassCache:YES
-                      completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/user/playlist"
+                        parameters:@{@"uid": uid, @"limit": @20}
+                            cookie:userCookie
+                       bypassCache:YES
+                        completion:^(NSDictionary *json, NSError *err) {
                 if (json) playlists = [SPNeteaseParser playlistsFromArray:json[@"playlist"]];
-                else lastError = err;
+                else recordError(err);
                 dispatch_group_leave(group);
             }];
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/top/playlist/highquality" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/top/playlist/highquality" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 if (json) extraPlaylists = [SPNeteaseParser playlistsFromArray:json[@"playlists"]];
                 dispatch_group_leave(group);
             }];
         } else {
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/top/playlist/highquality" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/top/playlist/highquality" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 if (json) playlists = [SPNeteaseParser playlistsFromArray:json[@"playlists"]];
-                else lastError = err;
+                else recordError(err);
                 dispatch_group_leave(group);
             }];
             dispatch_group_enter(group);
-            [weakSelf.client GET:@"/toplist" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+            [strongSelf.client GET:@"/toplist" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
                 NSArray<SPPlaylist *> *tops = [SPNeteaseParser playlistsFromArray:json[@"list"]];
                 if (tops.count > 0) {
                     extraPlaylists = [tops subarrayWithRange:NSMakeRange(0, MIN((NSUInteger)4, tops.count))];
@@ -934,15 +1044,15 @@
         }
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/album/newest" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/album/newest" parameters:nil cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             NSArray<SPAlbum *> *arr = [SPNeteaseParser albumsFromArray:json[@"albums"]];
             if (arr.count > 0) albums = [arr subarrayWithRange:NSMakeRange(0, MIN((NSUInteger)6, arr.count))];
-            else if (err && !lastError) lastError = err;
+            else recordError(err);
             dispatch_group_leave(group);
         }];
 
         dispatch_group_enter(group);
-        [weakSelf.client GET:@"/top/artists" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
+        [strongSelf.client GET:@"/top/artists" parameters:@{@"limit": @6} cookie:cookie bypassCache:NO completion:^(NSDictionary *json, NSError *err) {
             if (json) artists = [SPNeteaseParser artistsFromArray:json[@"artists"]];
             dispatch_group_leave(group);
         }];
@@ -972,29 +1082,41 @@
 
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
-        [weakSelf.client GET:@"/song/url/v1"
-                  parameters:@{@"id": track.identifier, @"level": @"standard"}
-                      cookie:cookie
-                 bypassCache:YES
-                  completion:^(NSDictionary *json, NSError *error) {
-            NSURL *resolved = [weakSelf extractURLFromSongURLPayload:json];
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
+        [strongSelf.client GET:@"/song/url/v1"
+                    parameters:@{@"id": track.identifier, @"level": @"standard"}
+                        cookie:cookie
+                   bypassCache:YES
+                    completion:^(NSDictionary *json, NSError *error) {
+            __strong typeof(weakSelf) innerSelf = weakSelf;
+            if (!innerSelf) {
+                if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+                return;
+            }
+            NSURL *resolved = [innerSelf extractURLFromSongURLPayload:json];
             if (resolved) {
                 completion(resolved, nil);
                 return;
             }
             // 兜底请求旧版 /song/url
-            [weakSelf.client GET:@"/song/url"
-                      parameters:@{@"id": track.identifier, @"br": @320000}
-                          cookie:cookie
-                     bypassCache:YES
-                      completion:^(NSDictionary *fallbackJson, NSError *fallbackErr) {
-                NSURL *fallbackURL = [weakSelf extractURLFromSongURLPayload:fallbackJson];
+            [innerSelf.client GET:@"/song/url"
+                       parameters:@{@"id": track.identifier, @"br": @320000}
+                           cookie:cookie
+                      bypassCache:YES
+                       completion:^(NSDictionary *fallbackJson, NSError *fallbackErr) {
+                __strong typeof(weakSelf) finalSelf = weakSelf;
+                NSURL *fallbackURL = [finalSelf extractURLFromSongURLPayload:fallbackJson];
                 if (fallbackURL) {
                     completion(fallbackURL, nil);
                 } else {
-                    completion(nil, [weakSelf musicErrorFrom:(fallbackErr ?: error)
-                                                fallbackCode:SPMusicErrorNoCopyright
-                                             fallbackMessage:@"该歌曲暂无播放版权"]);
+                    NSError *outErr = finalSelf
+                        ? [finalSelf musicErrorFrom:(fallbackErr ?: error) fallbackCode:SPMusicErrorNoCopyright fallbackMessage:@"该歌曲暂无播放版权"]
+                        : [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNoCopyright userInfo:@{NSLocalizedDescriptionKey: @"该歌曲暂无播放版权"}];
+                    completion(nil, outErr);
                 }
             }];
         }];
@@ -1017,13 +1139,21 @@
     }
     __weak typeof(self) weakSelf = self;
     [[SPNeteaseSession shared] ensureCookieWithClient:self.client completion:^(NSString *cookie) {
-        [weakSelf.client GET:@"/lyric"
-                  parameters:@{@"id": track.identifier}
-                      cookie:cookie
-                 bypassCache:NO
-                  completion:^(NSDictionary *json, NSError *error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            if (completion) completion(nil, [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"数据源已切换"}]);
+            return;
+        }
+        [strongSelf.client GET:@"/lyric"
+                    parameters:@{@"id": track.identifier}
+                        cookie:cookie
+                   bypassCache:NO
+                    completion:^(NSDictionary *json, NSError *error) {
             if (error || !json) {
-                completion(nil, [weakSelf musicErrorFrom:error fallbackCode:SPMusicErrorNetwork fallbackMessage:@"加载歌词失败"]);
+                NSError *outErr = weakSelf
+                    ? [weakSelf musicErrorFrom:error fallbackCode:SPMusicErrorNetwork fallbackMessage:@"加载歌词失败"]
+                    : (error ?: [NSError errorWithDomain:SPMusicErrorDomain code:SPMusicErrorNetwork userInfo:@{NSLocalizedDescriptionKey: @"加载歌词失败"}]);
+                completion(nil, outErr);
                 return;
             }
             NSDictionary *lrcDict = [SPNeteaseParser dictValue:json[@"lrc"]];
@@ -1031,7 +1161,9 @@
             NSString *lrcText = [SPNeteaseParser stringValue:lrcDict[@"lyric"]];
             NSString *tlyricText = [SPNeteaseParser stringValue:tlyricDict[@"lyric"]];
             SPLyricDocument *doc = [SPLyricDocument parseLRC:lrcText translationLRC:tlyricText];
-            if ([json[@"nolyric"] boolValue] && doc.lines.count == 0) {
+            id noLyricVal = json[@"nolyric"];
+            BOOL noLyric = [noLyricVal respondsToSelector:@selector(boolValue)] && [noLyricVal boolValue];
+            if (noLyric && doc.lines.count == 0) {
                 doc.isInstrumental = YES;
             }
             completion(doc, nil);

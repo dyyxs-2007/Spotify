@@ -84,10 +84,10 @@
     view.userInteractionEnabled = NO;
 
     UIView *lastAnchor = nil;
-    // 8 个双列快捷入口骨架（4 行 × 2 列）
+    // 8 个双列快捷入口骨架（4 行 × 2 列），圆角 6pt 与真实 SPHomeShortcutCell 对齐
     for (int row = 0; row < 4; row++) {
-        SPSkeletonBlockView *left = [[SPSkeletonBlockView alloc] initWithCornerRadius:4];
-        SPSkeletonBlockView *right = [[SPSkeletonBlockView alloc] initWithCornerRadius:4];
+        SPSkeletonBlockView *left = [[SPSkeletonBlockView alloc] initWithCornerRadius:6];
+        SPSkeletonBlockView *right = [[SPSkeletonBlockView alloc] initWithCornerRadius:6];
         [view addSubview:left];
         [view addSubview:right];
 

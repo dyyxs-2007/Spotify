@@ -35,6 +35,7 @@ static const NSTimeInterval SPAudioURLCacheTTL = 15 * 60.0;        // 15 分钟 
 
 @property (nonatomic, assign) NSUInteger totalHitCount;
 @property (nonatomic, assign) NSUInteger totalRequestCount;
+@property (atomic, assign) NSUInteger cacheEpoch;
 @end
 
 @implementation SPAudioCacheManager
@@ -186,6 +187,11 @@ static const NSTimeInterval SPAudioURLCacheTTL = 15 * 60.0;        // 15 分钟 
 }
 
 - (void)deleteDiskFileForSafeKey:(NSString *)safeKey {
+    // 同步清理 L1 中可能指向该已淘汰本地文件的 AVURLAsset，防止返回失效 file:// Asset
+    AVURLAsset *memAsset = [self.assetCache peekObjectForKey:safeKey];
+    if (memAsset && memAsset.URL.isFileURL) {
+        [self.assetCache removeObjectForKey:safeKey];
+    }
     NSString *path = [self existingFilePathForSafeKey:safeKey];
     @synchronized (self.diskFileNames) {
         [self.diskFileNames removeObjectForKey:safeKey];
@@ -290,11 +296,12 @@ static const NSTimeInterval SPAudioURLCacheTTL = 15 * 60.0;        // 15 分钟 
         return;
     }
 
-    // 2. 命中 L1 内存预热好的 AVURLAsset（非本地文件需校验 URL 未超过 TTL）
+    // 2. 命中 L1 内存预热好的 AVURLAsset（本地文件需校验存在，远程流需校验 URL 未超过 TTL）
     AVURLAsset *memAsset = [self.assetCache objectForKey:safeKey];
     if (memAsset) {
-        NSURL *validRemote = [self validCachedURLForSafeKey:safeKey peekOnly:NO];
-        if (memAsset.URL.isFileURL || validRemote != nil) {
+        BOOL validLocal = memAsset.URL.isFileURL && [[NSFileManager defaultManager] fileExistsAtPath:memAsset.URL.path];
+        NSURL *validRemote = validLocal ? nil : [self validCachedURLForSafeKey:safeKey peekOnly:NO];
+        if (validLocal || validRemote != nil) {
             self.totalHitCount += 1;
             NSURL *remoteURL = validRemote ?: memAsset.URL;
             if (remoteURL && !remoteURL.isFileURL) {
@@ -368,11 +375,13 @@ static const NSTimeInterval SPAudioURLCacheTTL = 15 * 60.0;        // 15 分钟 
     if (remoteURL.isFileURL) return;
     if ([self existingFilePathForSafeKey:safeKey] != nil) return;
 
+    NSUInteger epoch = self.cacheEpoch;
     NSString *ext = [self audioExtensionForRemoteURL:remoteURL];
     NSString *fileName = [NSString stringWithFormat:@"%@.%@", safeKey, ext];
     NSString *finalPath = [self.cacheDirectory stringByAppendingPathComponent:fileName];
 
     dispatch_async(self.ioQueue, ^{
+        if (self.cacheEpoch != epoch) return;
         if (self.activeDownloads[safeKey]) return;
         if ([self existingFilePathForSafeKey:safeKey] != nil) return;
 
@@ -385,29 +394,35 @@ static const NSTimeInterval SPAudioURLCacheTTL = 15 * 60.0;        // 15 分钟 
             NSHTTPURLResponse *httpResp = [response isKindOfClass:NSHTTPURLResponse.class] ? (NSHTTPURLResponse *)response : nil;
             BOOL statusOK = (!httpResp || (httpResp.statusCode >= 200 && httpResp.statusCode < 300));
 
-            if (!error && statusOK && location) {
-                NSString *tmpPath = [finalPath stringByAppendingString:@".tmp"];
-                NSFileManager *fm = [NSFileManager defaultManager];
-                [fm removeItemAtPath:tmpPath error:nil];
-                if ([fm copyItemAtURL:location toURL:[NSURL fileURLWithPath:tmpPath] error:nil]) {
-                    [fm removeItemAtPath:finalPath error:nil];
-                    if ([fm moveItemAtPath:tmpPath toPath:finalPath error:nil]) {
-                        unsigned long long fileSize = [[fm attributesOfItemAtPath:finalPath error:nil] fileSize];
-                        if (fileSize > 0) {
-                            @synchronized (strongSelf.diskFileNames) {
-                                strongSelf.diskFileNames[safeKey] = fileName;
+            // 同步到 ioQueue 执行 epoch 校验与原子落盘，既保证临时文件 location 在返回前有效，又杜绝与 clearAllCaches 竞态
+            dispatch_sync(strongSelf.ioQueue, ^{
+                [strongSelf.activeDownloads removeObjectForKey:safeKey];
+                if (strongSelf.cacheEpoch != epoch) return;
+                if (!error && statusOK && location) {
+                    NSString *tmpPath = [finalPath stringByAppendingString:@".tmp"];
+                    NSFileManager *fm = [NSFileManager defaultManager];
+                    if (![fm fileExistsAtPath:strongSelf.cacheDirectory]) {
+                        [fm createDirectoryAtPath:strongSelf.cacheDirectory withIntermediateDirectories:YES attributes:nil error:nil];
+                    }
+                    [fm removeItemAtPath:tmpPath error:nil];
+                    if ([fm copyItemAtURL:location toURL:[NSURL fileURLWithPath:tmpPath] error:nil]) {
+                        [fm removeItemAtPath:finalPath error:nil];
+                        if ([fm moveItemAtPath:tmpPath toPath:finalPath error:nil]) {
+                            unsigned long long fileSize = [[fm attributesOfItemAtPath:finalPath error:nil] fileSize];
+                            if (fileSize > 0) {
+                                @synchronized (strongSelf.diskFileNames) {
+                                    strongSelf.diskFileNames[safeKey] = fileName;
+                                }
+                                [strongSelf.diskIndexCache setObject:@(fileSize) forKey:safeKey cost:(NSUInteger)fileSize];
+                                NSArray<NSString *> *keys = [strongSelf.diskIndexCache allKeysInMRUOrder];
+                                NSData *data = [NSJSONSerialization dataWithJSONObject:keys options:0 error:nil];
+                                if (data) [data writeToFile:strongSelf.manifestPath atomically:YES];
                             }
-                            [strongSelf.diskIndexCache setObject:@(fileSize) forKey:safeKey cost:(NSUInteger)fileSize];
-                            [strongSelf persistManifestAsync];
+                        } else {
+                            [fm removeItemAtPath:tmpPath error:nil];
                         }
-                    } else {
-                        [fm removeItemAtPath:tmpPath error:nil];
                     }
                 }
-            }
-
-            dispatch_async(strongSelf.ioQueue, ^{
-                [strongSelf.activeDownloads removeObjectForKey:safeKey];
             });
         }];
         task.priority = NSURLSessionTaskPriorityLow;
@@ -416,12 +431,22 @@ static const NSTimeInterval SPAudioURLCacheTTL = 15 * 60.0;        // 15 分钟 
     });
 }
 
+- (void)invalidateCacheForTrack:(nullable SPTrack *)track {
+    if (!track || track.identifier.length == 0) return;
+    NSString *safeKey = [self safeKeyForTrackId:track.identifier];
+    [self.resolvedURLCache removeObjectForKey:safeKey];
+    [self.assetCache removeObjectForKey:safeKey];
+    [self.diskIndexCache removeObjectForKey:safeKey];
+    [self deleteDiskFileForSafeKey:safeKey];
+}
+
 - (void)clearMemoryCaches {
     [self.resolvedURLCache removeAllObjects];
     [self.assetCache removeAllObjects];
 }
 
 - (void)clearAllCaches {
+    self.cacheEpoch += 1;
     [self clearMemoryCaches];
     [self.diskIndexCache removeAllObjects];
     @synchronized (self.diskFileNames) {

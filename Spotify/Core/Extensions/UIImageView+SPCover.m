@@ -9,8 +9,51 @@
 #import <objc/runtime.h>
 
 static const void *SPCoverCurrentURLKey = &SPCoverCurrentURLKey;
+static const void *SPCoverSuppressBorderKey = &SPCoverSuppressBorderKey;
+static const void *SPCoverThemeObserverKey = &SPCoverThemeObserverKey;
+
+@interface _SPCoverThemeObserver : NSObject
+@property (nonatomic, weak) UIImageView *imageView;
+@end
+
+@implementation _SPCoverThemeObserver
+
+- (instancetype)initWithImageView:(UIImageView *)imageView {
+    if (self = [super init]) {
+        _imageView = imageView;
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(handleThemeChanged)
+                                                     name:SPThemeDidChangeNotification
+                                                   object:nil];
+    }
+    return self;
+}
+
+- (void)handleThemeChanged {
+    UIImageView *iv = self.imageView;
+    if (!iv || iv.sp_suppressCoverBorder) return;
+    iv.layer.borderColor = [SPTheme.coverBorderColor resolvedColorWithTraitCollection:[SPTheme resolvedTraitCollectionForView:iv]].CGColor;
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+@end
 
 @implementation UIImageView (SPCover)
+
+- (BOOL)sp_suppressCoverBorder {
+    return [objc_getAssociatedObject(self, SPCoverSuppressBorderKey) boolValue];
+}
+
+- (void)setSp_suppressCoverBorder:(BOOL)suppress {
+    objc_setAssociatedObject(self, SPCoverSuppressBorderKey, @(suppress), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if (suppress) {
+        self.layer.borderWidth = 0;
+        self.layer.borderColor = nil;
+    }
+}
 
 - (nullable NSString *)sp_currentURLString {
     return objc_getAssociatedObject(self, SPCoverCurrentURLKey);
@@ -20,16 +63,29 @@ static const void *SPCoverCurrentURLKey = &SPCoverCurrentURLKey;
     objc_setAssociatedObject(self, SPCoverCurrentURLKey, urlString, OBJC_ASSOCIATION_COPY_NONATOMIC);
 }
 
-- (void)sp_applyCoverChrome {
-    self.layer.cornerCurve = kCACornerCurveContinuous;
-    self.layer.borderWidth = 1.0 / UIScreen.mainScreen.scale;
-    self.layer.borderColor = [SPTheme.coverBorderColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
+- (void)sp_syncCurrentURLString:(nullable NSString *)urlString {
+    [self sp_setCurrentURLString:urlString];
 }
 
-- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
-    [super traitCollectionDidChange:previousTraitCollection];
-    if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection]) {
-        self.layer.borderColor = [SPTheme.coverBorderColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
+- (void)sp_cancelCoverLoadAndReset {
+    [self sd_cancelCurrentImageLoad];
+    [self sp_setCurrentURLString:nil];
+    self.image = nil;
+}
+
+- (void)sp_applyCoverChrome {
+    self.layer.cornerCurve = kCACornerCurveContinuous;
+    if (self.sp_suppressCoverBorder) {
+        self.layer.borderWidth = 0;
+        self.layer.borderColor = nil;
+        return;
+    }
+    self.layer.borderWidth = 1.0 / UIScreen.mainScreen.scale;
+    self.layer.borderColor = [SPTheme.coverBorderColor resolvedColorWithTraitCollection:[SPTheme resolvedTraitCollectionForView:self]].CGColor;
+
+    if (!objc_getAssociatedObject(self, SPCoverThemeObserverKey)) {
+        _SPCoverThemeObserver *observer = [[_SPCoverThemeObserver alloc] initWithImageView:self];
+        objc_setAssociatedObject(self, SPCoverThemeObserverKey, observer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 }
 
@@ -38,8 +94,8 @@ static const void *SPCoverCurrentURLKey = &SPCoverCurrentURLKey;
 }
 
 - (void)sp_setImageWithURLString:(NSString *)urlString
-                placeholderColor:(UIColor *)color
-                      completion:(void (^)(UIImage * _Nullable image))completion {
+                 placeholderColor:(UIColor *)color
+                       completion:(void (^)(UIImage * _Nullable image))completion {
     [self sp_applyCoverChrome];
 
     if (urlString.length > 0 && [[self sp_currentURLString] isEqualToString:urlString] && self.image != nil) {
@@ -48,7 +104,16 @@ static const void *SPCoverCurrentURLKey = &SPCoverCurrentURLKey;
     }
 
     [self sp_setCurrentURLString:urlString];
-    self.backgroundColor = color ? [color sp_darkenedBy:0.35] : SPTheme.highlightColor;
+    self.image = nil;
+    if (color) {
+        self.backgroundColor = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *tc) {
+            return (tc.userInterfaceStyle == UIUserInterfaceStyleLight)
+                ? [color colorWithAlphaComponent:0.14]
+                : [color sp_darkenedBy:0.35];
+        }];
+    } else {
+        self.backgroundColor = SPTheme.highlightColor;
+    }
     self.sd_imageTransition = nil;
 
     NSURL *url = urlString.length ? [NSURL URLWithString:urlString] : nil;
@@ -60,7 +125,7 @@ static const void *SPCoverCurrentURLKey = &SPCoverCurrentURLKey;
     }
 
     CGFloat width = CGRectGetWidth(self.bounds);
-    CGFloat side = width > 0 ? MIN(width * UIScreen.mainScreen.scale, 600) : 600;
+    CGFloat side = (width > 0 && width <= 84.0) ? 240.0 : 600.0;
     NSDictionary *context = @{ SDWebImageContextImageThumbnailPixelSize: @(CGSizeMake(side, side)) };
 
     __weak typeof(self) weakSelf = self;
@@ -72,6 +137,13 @@ static const void *SPCoverCurrentURLKey = &SPCoverCurrentURLKey;
                    completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (!strongSelf) return;
+        // 已被后续新请求取消的下载绝不回调旧歌 fallback，避免覆盖新背景主色
+        if (error && [error.domain isEqualToString:SDWebImageErrorDomain] && error.code == SDWebImageErrorCancelled) {
+            return;
+        }
+        if (urlString.length > 0 && ![[strongSelf sp_currentURLString] isEqualToString:urlString]) {
+            return;
+        }
         if (image) {
             if (cacheType == SDImageCacheTypeNone && !UIAccessibilityIsReduceMotionEnabled()) {
                 [UIView transitionWithView:strongSelf

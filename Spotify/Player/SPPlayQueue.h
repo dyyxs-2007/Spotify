@@ -26,6 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)replaceWithTracks:(NSArray<SPTrack *> *)tracks startIndex:(NSUInteger)startIndex;
 - (void)insertNextTrack:(SPTrack *)track;
+- (void)clear;
 
 - (nullable SPTrack *)advanceToNextByAutoPlay:(BOOL)isAutoPlay;
 - (nullable SPTrack *)retreatToPrevious;

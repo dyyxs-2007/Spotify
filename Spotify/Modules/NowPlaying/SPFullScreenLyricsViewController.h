@@ -13,6 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SPFullScreenLyricsViewController : UIViewController
 
+@property (nonatomic, copy, nullable) void (^translationDidChangeHandler)(BOOL showTranslation);
+
 - (instancetype)initWithTrack:(SPTrack *)track
                      document:(nullable SPLyricDocument *)document
                    themeColor:(nullable UIColor *)themeColor

@@ -17,6 +17,7 @@
 @property (nonatomic, strong) UIImageView *coverView;
 @property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UILabel *artistLabel;
+@property (nonatomic, copy, nullable) void (^pressStateHandler)(BOOL pressed);
 @end
 
 @implementation SPMiniPlayerTrackSlotView
@@ -27,6 +28,7 @@
         _coverView.contentMode = UIViewContentModeScaleAspectFill;
         _coverView.clipsToBounds = YES;
         _coverView.layer.cornerRadius = 4;
+        [_coverView sp_applyCoverChrome];
         [self addSubview:_coverView];
 
         _titleLabel = [UILabel new];
@@ -62,6 +64,21 @@
     }];
 }
 
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [super touchesBegan:touches withEvent:event];
+    if (self.pressStateHandler) self.pressStateHandler(YES);
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [super touchesEnded:touches withEvent:event];
+    if (self.pressStateHandler) self.pressStateHandler(NO);
+}
+
+- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [super touchesCancelled:touches withEvent:event];
+    if (self.pressStateHandler) self.pressStateHandler(NO);
+}
+
 @end
 
 #pragma mark - SPMiniPlayerView
@@ -85,6 +102,7 @@
 @property (nonatomic, strong, nullable) UIColor *centerTintedColor;
 @property (nonatomic, strong, nullable) UIColor *nextTintedColor;
 @property (nonatomic, copy, nullable) NSString *renderedTrackId;
+@property (nonatomic, copy, nullable) NSString *dragStartTrackId;
 @property (nonatomic, assign) BOOL didInitialStateRender;
 @property (nonatomic, assign) BOOL ignoreScrollEvents;
 @property (nonatomic, assign) CGFloat lastPagerWidth;
@@ -192,9 +210,9 @@
     _backgroundView.layer.cornerRadius = 12;
     _backgroundView.layer.cornerCurve = kCACornerCurveContinuous;
     _backgroundView.layer.borderWidth = 1.0 / UIScreen.mainScreen.scale;
-    _backgroundView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.10].CGColor;
     _backgroundView.clipsToBounds = YES;
     [self addSubview:_backgroundView];
+    [self updateElevationAppearance];
 
     _trackPagerScrollView = [UIScrollView new];
     _trackPagerScrollView.pagingEnabled = YES;
@@ -209,6 +227,13 @@
     _prevSlot = [SPMiniPlayerTrackSlotView new];
     _centerSlot = [SPMiniPlayerTrackSlotView new];
     _nextSlot = [SPMiniPlayerTrackSlotView new];
+    __weak typeof(self) weakSelf = self;
+    void (^onSlotPress)(BOOL) = ^(BOOL pressed) {
+        [weakSelf setMiniBarPressed:pressed];
+    };
+    _prevSlot.pressStateHandler = onSlotPress;
+    _centerSlot.pressStateHandler = onSlotPress;
+    _nextSlot.pressStateHandler = onSlotPress;
     [_trackPagerScrollView addSubview:_prevSlot];
     [_trackPagerScrollView addSubview:_centerSlot];
     [_trackPagerScrollView addSubview:_nextSlot];
@@ -241,9 +266,9 @@
         make.edges.equalTo(self);
     }];
     [_playButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.backgroundView).offset(-6);
+        make.right.equalTo(self.backgroundView).offset(-4);
         make.centerY.equalTo(self.backgroundView).offset(-1);
-        make.size.mas_equalTo(CGSizeMake(40, 40));
+        make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
     [_loadingIndicator mas_makeConstraints:^(MASConstraintMaker *make) {
         make.center.equalTo(self.playButton);
@@ -251,15 +276,15 @@
     [_deviceButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(self.playButton.mas_left);
         make.centerY.equalTo(self.playButton);
-        make.size.mas_equalTo(CGSizeMake(40, 40));
+        make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
     [_trackPagerScrollView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.top.bottom.equalTo(self.backgroundView);
         make.right.equalTo(self.deviceButton.mas_left).offset(-4);
     }];
     [_progressTrack mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.backgroundView).offset(12);
-        make.right.equalTo(self.backgroundView).offset(-12);
+        make.left.equalTo(self.backgroundView).offset(16);
+        make.right.equalTo(self.backgroundView).offset(-16);
         make.bottom.equalTo(self.backgroundView);
         make.height.mas_equalTo(2);
     }];
@@ -274,6 +299,28 @@
 }
 
 #pragma mark - Reload Slots
+
++ (UIImage *)emptyPlaceholderCoverImage {
+    static UIImage *placeholder;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        CGSize size = CGSizeMake(120, 120);
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size];
+        placeholder = [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+            [[UIColor sp_colorWithHex:0x2E2E36] setFill];
+            [[UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, size.width, size.height) cornerRadius:12] fill];
+            UIImage *note = [[SPTheme symbol:@"music.note" size:44 weight:UIImageSymbolWeightMedium]
+                             imageWithTintColor:[UIColor colorWithWhite:1.0 alpha:0.55]
+                             renderingMode:UIImageRenderingModeAlwaysOriginal];
+            CGRect r = CGRectMake((size.width - note.size.width) * 0.5,
+                                  (size.height - note.size.height) * 0.5,
+                                  note.size.width,
+                                  note.size.height);
+            [note drawInRect:r];
+        }];
+    });
+    return placeholder;
+}
 
 - (UIColor *)tintedBackgroundForTrack:(nullable SPTrack *)track dominantColor:(nullable UIColor *)dominant {
     if (dominant) return [dominant sp_darkenedBy:0.25];
@@ -290,9 +337,20 @@
              slotType:(NSInteger)slotType {
     if (!track) {
         [UIView performWithoutAnimation:^{
-            slot.titleLabel.text = @"";
-            slot.artistLabel.text = @"";
-            slot.coverView.image = nil;
+            if (slotType == 1) {
+                slot.titleLabel.text = @"未在播放";
+                slot.artistLabel.text = @"轻触打开空白播放页 · 选一首歌开始";
+                [slot.coverView sd_cancelCurrentImageLoad];
+                slot.coverView.image = [SPMiniPlayerView emptyPlaceholderCoverImage];
+                self.centerTintedColor = [UIColor sp_colorWithHex:0x222226];
+            } else {
+                slot.titleLabel.text = @"";
+                slot.artistLabel.text = @"";
+                [slot.coverView sd_cancelCurrentImageLoad];
+                slot.coverView.image = nil;
+                if (slotType == 0) self.prevTintedColor = nil;
+                else if (slotType == 2) self.nextTintedColor = nil;
+            }
             [slot setNeedsLayout];
             [slot layoutIfNeeded];
         }];
@@ -355,7 +413,7 @@
 
     if (!alreadyDisplayingCenter) {
         [self configureSlot:self.centerSlot withTrack:track slotType:1];
-        UIColor *targetBg = self.centerTintedColor ?: [UIColor sp_colorWithHex:0x242428];
+        UIColor *targetBg = track ? (self.centerTintedColor ?: [UIColor sp_colorWithHex:0x242428]) : [UIColor sp_colorWithHex:0x222226];
         if (![self.backgroundView.backgroundColor isEqual:targetBg]) {
             BOOL canAnimateBg = (self.window != nil) && !self.hidden && (self.alpha > 0.01);
             if (canAnimateBg) {
@@ -368,9 +426,16 @@
         }
     }
 
+    if (!track) {
+        self.currentProgress = 0.0;
+        self.currentBufferProgress = 0.0;
+        [self layoutProgressFrames];
+    }
+
     [self configureSlot:self.prevSlot withTrack:player.previousTrack slotType:0];
     [self configureSlot:self.nextSlot withTrack:player.nextTrack slotType:2];
     [self layoutTrackPagerIfNeededForce:YES];
+    [self reloadState];
 }
 
 - (void)reloadAdjacentSlotsOnly {
@@ -385,14 +450,34 @@
     [self layoutTrackPagerIfNeededForce:YES];
 }
 
+- (void)updateElevationAppearance {
+    BOOL isLight = (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleLight);
+    self.layer.shadowOpacity = isLight ? 0.18 : 0.38;
+    self.backgroundView.layer.borderColor = isLight
+        ? [UIColor colorWithWhite:0.0 alpha:0.08].CGColor
+        : [UIColor colorWithWhite:1.0 alpha:0.10].CGColor;
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [super traitCollectionDidChange:previousTraitCollection];
+    if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection]) {
+        [self updateElevationAppearance];
+    }
+}
+
 - (void)reloadState {
-    SPPlaybackState state = [SPPlayerService shared].state;
-    if (state == SPPlaybackStateLoading) {
+    SPPlayerService *player = [SPPlayerService shared];
+    SPPlaybackState state = player.state;
+    BOOL hasTrack = (player.currentTrack != nil);
+    self.progressTrack.hidden = !hasTrack;
+    if (hasTrack && state == SPPlaybackStateLoading) {
+        self.playButton.alpha = 1.0;
         [self.playButton setImage:nil forState:UIControlStateNormal];
         [self.loadingIndicator startAnimating];
     } else {
         [self.loadingIndicator stopAnimating];
-        BOOL playing = (state == SPPlaybackStatePlaying);
+        BOOL playing = (hasTrack && state == SPPlaybackStatePlaying);
+        self.playButton.alpha = hasTrack ? 1.0 : 0.48;
         self.playButton.opticalHorizontalOffset = playing ? 0.0 : 1.5;
         BOOL shouldAnimate = self.didInitialStateRender && (self.window != nil) && !self.hidden && CGRectGetWidth(self.playButton.bounds) > 0;
         [self.playButton sp_setSymbol:playing ? @"pause.fill" : @"play.fill"
@@ -411,6 +496,24 @@
 }
 
 #pragma mark - UIScrollViewDelegate (Interactive Track Peek)
+
+- (void)setMiniBarPressed:(BOOL)pressed {
+    BOOL reduceMotion = UIAccessibilityIsReduceMotionEnabled();
+    [UIView animateWithDuration:0.14
+                          delay:0
+                        options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionCurveEaseOut
+                     animations:^{
+        self.backgroundView.alpha = pressed ? 0.92 : 1.0;
+        if (!reduceMotion) {
+            self.backgroundView.transform = pressed ? CGAffineTransformMakeScale(0.985, 0.985) : CGAffineTransformIdentity;
+        }
+    } completion:nil];
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    [self setMiniBarPressed:NO];
+    self.dragStartTrackId = [SPPlayerService shared].currentTrack.identifier;
+}
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (self.ignoreScrollEvents || !self.lastHasAdjacent || self.lastPagerWidth <= 0) return;
@@ -450,6 +553,18 @@
     }
 
     SPPlayerService *player = [SPPlayerService shared];
+    NSString *currentId = player.currentTrack.identifier;
+    if (self.dragStartTrackId.length > 0 && currentId.length > 0 && ![self.dragStartTrackId isEqualToString:currentId]) {
+        self.dragStartTrackId = nil;
+        self.ignoreScrollEvents = YES;
+        [scrollView setContentOffset:CGPointMake(self.lastPagerWidth, 0) animated:YES];
+        self.ignoreScrollEvents = NO;
+        UIColor *restored = self.centerTintedColor ?: [UIColor sp_colorWithHex:0x242428];
+        self.backgroundView.backgroundColor = restored;
+        return;
+    }
+    self.dragStartTrackId = nil;
+
     BOOL isNext = (page >= 2);
     SPTrack *targetTrack = isNext ? player.nextTrack : player.previousTrack;
     if (!targetTrack) {
@@ -464,6 +579,7 @@
     UIColor *targetColor = isNext ? self.nextTintedColor : self.prevTintedColor;
     self.renderedTrackId = targetTrack.identifier;
     self.centerSlot.coverView.image = sourceSlot.coverView.image;
+    [self.centerSlot.coverView sp_syncCurrentURLString:targetTrack.coverURL];
     self.centerSlot.titleLabel.text = sourceSlot.titleLabel.text;
     self.centerSlot.artistLabel.text = sourceSlot.artistLabel.text;
     if (targetColor) {
@@ -508,9 +624,28 @@
 
 #pragma mark - Actions
 
-- (void)handleTap { [SPHaptics light]; if (self.tapHandler) self.tapHandler(); }
+- (void)handleTap {
+    if (self.lastHasAdjacent && self.lastPagerWidth > 0 &&
+        fabs(self.trackPagerScrollView.contentOffset.x - self.lastPagerWidth) > 2.0) {
+        self.ignoreScrollEvents = YES;
+        [self.trackPagerScrollView setContentOffset:CGPointMake(self.lastPagerWidth, 0) animated:NO];
+        self.ignoreScrollEvents = NO;
+        if (self.centerTintedColor) {
+            self.backgroundView.backgroundColor = self.centerTintedColor;
+        }
+    }
+    [SPHaptics light];
+    if (self.tapHandler) self.tapHandler();
+}
 - (void)handleSwipeUp { [SPHaptics medium]; if (self.tapHandler) self.tapHandler(); }
-- (void)playTapped { [SPHaptics medium]; [[SPPlayerService shared] togglePlayPause]; }
+- (void)playTapped {
+    if (![SPPlayerService shared].currentTrack) {
+        [self handleTap];
+        return;
+    }
+    [SPHaptics medium];
+    [[SPPlayerService shared] togglePlayPause];
+}
 - (void)deviceTapped { [SPHaptics light]; [SPToast showMessage:@"当前输出：本机扬声器"]; }
 
 @end

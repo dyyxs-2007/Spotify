@@ -45,6 +45,10 @@ FOUNDATION_EXPORT NSNotificationName const SPLibraryDidUpdateNotification;
 - (BOOL)isArtistFollowed:(nullable NSString *)artistId;
 - (BOOL)toggleFollowArtist:(SPArtist *)artist;
 
+#pragma mark - Saved Collections (Playlists / Albums)
+- (BOOL)isCollectionSaved:(nullable NSString *)collectionId;
+- (BOOL)toggleSaveCollectionWithId:(NSString *)collectionId;
+
 @end
 
 NS_ASSUME_NONNULL_END

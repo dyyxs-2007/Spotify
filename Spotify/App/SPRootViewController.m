@@ -9,7 +9,9 @@
 #import "SPSearchViewController.h"
 #import "SPLibraryViewController.h"
 #import "SPMiniPlayerView.h"
+#import "SPGradientView.h"
 #import "SPScaleButton.h"
+#import "SPToggleSwitch.h"
 #import "SPNowPlayingViewController.h"
 #import "SPNowPlayingTransition.h"
 #import "SPSideDrawerViewController.h"
@@ -17,6 +19,8 @@
 #import "SPActivityViewController.h"
 #import "SPHistoryViewController.h"
 #import "SPSettingsViewController.h"
+#import "SPDetailViewController.h"
+#import "SPLibraryStore.h"
 #import "SPPlayerService.h"
 #import "SPHaptics.h"
 
@@ -103,7 +107,10 @@
 - (void)updateAppearance {
     BOOL selected = self.tabSelected;
     NSString *iconName = selected ? self.selectedIconName : self.normalIconName;
-    UIImageSymbolWeight weight = selected ? UIImageSymbolWeightSemibold : UIImageSymbolWeightRegular;
+    BOOL sameIcon = [self.normalIconName isEqualToString:self.selectedIconName];
+    UIImageSymbolWeight weight = selected
+        ? (sameIcon ? UIImageSymbolWeightBold : UIImageSymbolWeightSemibold)
+        : UIImageSymbolWeightRegular;
     self.iconView.image = [SPTheme symbol:iconName size:22 weight:weight];
     UIColor *color = selected ? SPTheme.textPrimaryColor : SPTheme.textSecondaryColor;
     self.iconView.tintColor = color;
@@ -127,6 +134,7 @@ static const CGFloat SPDockTabBarHeight = 52.0;
 @interface SPRootViewController () <SPPlayerObserver, UIGestureRecognizerDelegate>
 @property (nonatomic, strong) UIView *contentContainer;
 @property (nonatomic, strong) SPInternalTabBarController *tabController;
+@property (nonatomic, strong) SPGradientView *dockFadeScrim;
 @property (nonatomic, strong) UIView *tabBarOpaqueBackdrop;
 @property (nonatomic, strong) UIView *tabBarTopHairline;
 @property (nonatomic, strong) UIView *customTabBar;
@@ -218,6 +226,11 @@ static const CGFloat SPDockTabBarHeight = 52.0;
 }
 
 - (void)setupBottomDock {
+    _dockFadeScrim = [SPGradientView new];
+    _dockFadeScrim.userInteractionEnabled = NO;
+    _dockFadeScrim.locations = @[@0.0, @0.55, @1.0];
+    [self.contentContainer addSubview:_dockFadeScrim];
+
     _tabBarOpaqueBackdrop = [UIView new];
     _tabBarOpaqueBackdrop.opaque = YES;
     [self.contentContainer addSubview:_tabBarOpaqueBackdrop];
@@ -279,6 +292,11 @@ static const CGFloat SPDockTabBarHeight = 52.0;
         make.height.mas_equalTo(SPMiniPlayerHeight);
         make.bottom.equalTo(self.customTabBar.mas_top).offset(-8);
     }];
+    [_dockFadeScrim mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.equalTo(self.contentContainer);
+        make.top.equalTo(self.miniPlayer.mas_top).offset(-16);
+        make.bottom.equalTo(self.customTabBar.mas_top);
+    }];
 
     [self syncCustomTabSelection:(NSInteger)self.tabController.selectedIndex];
     [self updateBottomDockTheme];
@@ -306,8 +324,7 @@ static const CGFloat SPDockTabBarHeight = 52.0;
 }
 
 - (void)updateTabDockMetrics {
-    BOOL visible = ([SPPlayerService shared].currentTrack != nil);
-    CGFloat inset = SPDockTabBarHeight + (visible ? (SPMiniPlayerHeight + 16.0) : 6.0);
+    CGFloat inset = SPDockTabBarHeight + SPMiniPlayerHeight + 16.0;
     for (UIViewController *vc in self.tabController.viewControllers) {
         UIEdgeInsets insets = vc.additionalSafeAreaInsets;
         insets.bottom = inset;
@@ -321,13 +338,20 @@ static const CGFloat SPDockTabBarHeight = 52.0;
 }
 
 - (void)updateBottomDockTheme {
-    UIColor *solidDockColor = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *tc) {
-        return (tc.userInterfaceStyle == UIUserInterfaceStyleLight)
+    UITraitCollection *tc = [SPTheme resolvedTraitCollectionForView:self.view];
+    UIColor *solidDockColor = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *innerTC) {
+        return (innerTC.userInterfaceStyle == UIUserInterfaceStyleLight)
             ? UIColor.whiteColor
             : [UIColor sp_colorWithHex:0x121214];
     }];
     self.tabBarOpaqueBackdrop.backgroundColor = solidDockColor;
     self.tabBarTopHairline.backgroundColor = SPTheme.separatorColor;
+    UIColor *resolvedBg = [SPTheme.backgroundColor resolvedColorWithTraitCollection:tc];
+    self.dockFadeScrim.colors = @[
+        [resolvedBg colorWithAlphaComponent:0.0],
+        [resolvedBg colorWithAlphaComponent:0.86],
+        resolvedBg,
+    ];
 }
 
 #pragma mark - Overlay Drawer
@@ -413,46 +437,16 @@ static const CGFloat SPDockTabBarHeight = 52.0;
 #pragma mark - Mini Player
 
 - (void)updateMiniPlayerVisibilityAnimated:(BOOL)animated {
-    BOOL visible = [SPPlayerService shared].currentTrack != nil;
     [self updateTabDockMetrics];
 
-    // 先在无动画块中自顶向下冲刷 self.view -> contentContainer -> miniPlayer 约束，防止首次进入时子控件从 (0,0,0,0) 飞入导致乱飘
+    // MiniPlayer 常驻展示（含未播放/退出登录/切换账号时的待机空白状态），在无动画块中冲刷约束避免子控件漂移
     [UIView performWithoutAnimation:^{
+        self.miniPlayer.hidden = NO;
+        self.miniPlayer.alpha = 1.0;
+        self.miniPlayer.transform = CGAffineTransformIdentity;
         [self.view layoutIfNeeded];
         [self.contentContainer layoutIfNeeded];
         [self.miniPlayer layoutIfNeeded];
-    }];
-
-    if (visible == !self.miniPlayer.hidden) {
-        return;
-    }
-
-    BOOL shouldAnimate = animated
-        && !UIAccessibilityIsReduceMotionEnabled()
-        && (self.view.window != nil)
-        && (CGRectGetWidth(self.contentContainer.bounds) > 0)
-        && (CGRectGetWidth(self.miniPlayer.bounds) > 0);
-    if (!shouldAnimate) {
-        [UIView performWithoutAnimation:^{
-            self.miniPlayer.hidden = !visible;
-            self.miniPlayer.alpha = visible ? 1 : 0;
-            self.miniPlayer.transform = CGAffineTransformIdentity;
-            [self.miniPlayer layoutIfNeeded];
-        }];
-        return;
-    }
-    [UIView performWithoutAnimation:^{
-        self.miniPlayer.hidden = NO;
-        self.miniPlayer.alpha = visible ? 0 : 1;
-        self.miniPlayer.transform = visible ? CGAffineTransformMakeTranslation(0, 14) : CGAffineTransformIdentity;
-        [self.miniPlayer layoutIfNeeded];
-    }];
-    [UIView animateWithDuration:0.32 delay:0 usingSpringWithDamping:0.88 initialSpringVelocity:0 options:0 animations:^{
-        self.miniPlayer.alpha = visible ? 1 : 0;
-        self.miniPlayer.transform = visible ? CGAffineTransformIdentity : CGAffineTransformMakeTranslation(0, 14);
-    } completion:^(BOOL finished) {
-        self.miniPlayer.hidden = !visible;
-        self.miniPlayer.transform = CGAffineTransformIdentity;
     }];
 }
 
@@ -471,6 +465,30 @@ static const CGFloat SPDockTabBarHeight = 52.0;
     self.closePan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleDrawerPan:)];
     self.closePan.delegate = self;
     [self.view addGestureRecognizer:self.closePan];
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    if (gestureRecognizer == self.closePan) {
+        UIView *v = touch.view;
+        while (v && v != self.view) {
+            if ([v isKindOfClass:SPToggleSwitch.class] || [v isKindOfClass:UISwitch.class] || [v isKindOfClass:UISlider.class]) {
+                return NO;
+            }
+            v = v.superview;
+        }
+    }
+    return YES;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    if (gestureRecognizer == self.edgePan && !self.drawerOpen) {
+        UINavigationController *nav = (UINavigationController *)self.tabController.selectedViewController;
+        if (![nav isKindOfClass:UINavigationController.class] || nav.viewControllers.count <= 1) {
+            return YES;
+        }
+    }
+    return NO;
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
@@ -584,13 +602,24 @@ static const CGFloat SPDockTabBarHeight = 52.0;
 #pragma mark - Unified VC Transition Choreography
 
 - (void)handleDrawerAction:(SPDrawerMenuAction)action {
-    if (action == SPDrawerMenuActionAuth) {
+    if (action == SPDrawerMenuActionAuth || action == SPDrawerMenuActionSwitchAccount) {
         [self presentAuthFlow];
+        return;
+    }
+
+    if (action == SPDrawerMenuActionLibrary) {
+        self.tabController.selectedIndex = 2;
+        [self closeSideDrawerAnimated:YES completion:nil];
         return;
     }
 
     UIViewController *targetVC = nil;
     switch (action) {
+        case SPDrawerMenuActionLikedSongs: {
+            SPPlaylist *liked = [[SPLibraryStore shared] likedSongsPlaylist];
+            targetVC = [[SPDetailViewController alloc] initWithMediaItem:liked];
+            break;
+        }
         case SPDrawerMenuActionActivity:
             targetVC = [SPActivityViewController new];
             break;
@@ -601,13 +630,15 @@ static const CGFloat SPDockTabBarHeight = 52.0;
             targetVC = [SPSettingsViewController new];
             break;
         case SPDrawerMenuActionAuth:
+        case SPDrawerMenuActionSwitchAccount:
+        case SPDrawerMenuActionLibrary:
             break;
     }
 
     if (targetVC) {
         UINavigationController *nav = (UINavigationController *)self.tabController.selectedViewController;
         if ([nav isKindOfClass:UINavigationController.class] && ![nav.topViewController isKindOfClass:targetVC.class]) {
-            // 先让目标页在静止的底层就位，随后抽屉单段平滑滑出并显露目标页，消除“关抽屉闪首页再推入”的两段割裂
+            //先让目标页在静止的底层就位，随后抽屉单段平滑滑出并显露目标页，消除“关抽屉闪首页再推入”的两段割裂
             [nav pushViewController:targetVC animated:NO];
         }
     }
@@ -624,15 +655,22 @@ static const CGFloat SPDockTabBarHeight = 52.0;
 #pragma mark - Modal Presentations
 
 - (void)presentNowPlaying {
-    if (![SPPlayerService shared].currentTrack) return;
     if (!self.nowPlayingTransition) {
         __weak typeof(self) weakSelf = self;
-        self.nowPlayingTransition = [[SPNowPlayingTransition alloc] initWithMiniPlayerView:self.miniPlayer
-                                                                       sourceCoverProvider:^UIView *{
+        self.nowPlayingTransition = [[SPNowPlayingTransition alloc] initWithMiniPlayerView:self.miniPlayer sourceCoverProvider:^UIView *{
             return weakSelf.miniPlayer.coverView;
         }];
     }
     SPNowPlayingViewController *vc = [SPNowPlayingViewController new];
+    __weak typeof(self) weakSelf = self;
+    vc.dismissDragProgressHandler = ^(CGFloat progress) {
+        [weakSelf.nowPlayingTransition updateBackdropForDismissProgress:progress];
+    };
+    vc.emptyActionHandler = ^(NSInteger targetTabIndex) {
+        if (targetTabIndex >= 0 && targetTabIndex < (NSInteger)weakSelf.tabController.viewControllers.count) {
+            weakSelf.tabController.selectedIndex = (NSUInteger)targetTabIndex;
+        }
+    };
     vc.modalPresentationStyle = UIModalPresentationCustom;
     vc.transitioningDelegate = self.nowPlayingTransition;
     [self presentViewController:vc animated:YES completion:nil];

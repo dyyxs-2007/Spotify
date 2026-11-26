@@ -12,6 +12,7 @@ static NSString * const SPHistoryDefaultsKeyPrefix = @"com.dyyxs.spotify.recentT
 static const NSUInteger SPHistoryMaxCount = 50;
 
 @interface SPHistoryStore () <SPAuthObserver>
+@property (nonatomic, copy) NSString *activeScopeKey;
 @property (nonatomic, strong) NSMutableArray<SPTrack *> *tracksStorage;
 @end
 
@@ -27,52 +28,90 @@ static const NSUInteger SPHistoryMaxCount = 50;
 - (instancetype)init {
     if (self = [super init]) {
         _tracksStorage = [NSMutableArray array];
+        _activeScopeKey = [self currentScopeKey];
         [self loadFromDefaults];
         [[SPAuthService shared] addObserver:self];
     }
     return self;
 }
 
-- (NSString *)scopedDefaultsKey {
+- (NSString *)currentScopeKey {
     SPUser *user = [SPAuthService shared].currentUser;
-    NSString *scope = user.userId.length > 0 ? user.userId : (user.account.length > 0 ? user.account.lowercaseString : @"guest");
-    return [SPHistoryDefaultsKeyPrefix stringByAppendingString:scope];
+    return user.userId.length > 0 ? user.userId : (user.account.length > 0 ? user.account.lowercaseString : @"guest");
+}
+
+- (NSString *)scopedDefaultsKey {
+    return [SPHistoryDefaultsKeyPrefix stringByAppendingString:(self.activeScopeKey.length ? self.activeScopeKey : @"guest")];
+}
+
+- (void)ensureScopeMatchesCurrentUserLocked {
+    NSString *expected = [self currentScopeKey];
+    if (![self.activeScopeKey isEqualToString:expected]) {
+        self.activeScopeKey = expected;
+        [self loadFromDefaults];
+    }
 }
 
 - (void)reloadForCurrentUser {
-    [self loadFromDefaults];
-    [[NSNotificationCenter defaultCenter] postNotificationName:SPHistoryDidUpdateNotification object:self];
+    @synchronized (self) {
+        self.activeScopeKey = [self currentScopeKey];
+        [self loadFromDefaults];
+    }
+    dispatch_block_t block = ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:SPHistoryDidUpdateNotification object:self];
+    };
+    if (NSThread.isMainThread) block(); else dispatch_async(dispatch_get_main_queue(), block);
 }
 
 - (void)authServiceDidChangeUser:(SPAuthService *)authService {
+    @synchronized (self) {
+        if ([self.activeScopeKey isEqualToString:[self currentScopeKey]]) {
+            return;
+        }
+    }
     [self reloadForCurrentUser];
 }
 
 - (NSArray<SPTrack *> *)recentTracks {
-    return [self.tracksStorage copy];
+    @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
+        return [self.tracksStorage copy];
+    }
 }
 
 - (void)recordTrack:(SPTrack *)track {
     if (!track || track.identifier.length == 0) return;
 
-    NSUInteger existingIdx = [self.tracksStorage indexOfObjectPassingTest:^BOOL(SPTrack *obj, NSUInteger idx, BOOL *stop) {
-        return [obj.identifier isEqualToString:track.identifier];
-    }];
-    if (existingIdx != NSNotFound) {
-        [self.tracksStorage removeObjectAtIndex:existingIdx];
+    @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
+        NSUInteger existingIdx = [self.tracksStorage indexOfObjectPassingTest:^BOOL(SPTrack *obj, NSUInteger idx, BOOL *stop) {
+            return [obj.identifier isEqualToString:track.identifier];
+        }];
+        if (existingIdx != NSNotFound) {
+            [self.tracksStorage removeObjectAtIndex:existingIdx];
+        }
+        [self.tracksStorage insertObject:track atIndex:0];
+        while (self.tracksStorage.count > SPHistoryMaxCount) {
+            [self.tracksStorage removeLastObject];
+        }
+        [self saveToDefaults];
     }
-    [self.tracksStorage insertObject:track atIndex:0];
-    while (self.tracksStorage.count > SPHistoryMaxCount) {
-        [self.tracksStorage removeLastObject];
-    }
-    [self saveToDefaults];
-    [[NSNotificationCenter defaultCenter] postNotificationName:SPHistoryDidUpdateNotification object:self];
+    dispatch_block_t block = ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:SPHistoryDidUpdateNotification object:self];
+    };
+    if (NSThread.isMainThread) block(); else dispatch_async(dispatch_get_main_queue(), block);
 }
 
 - (void)clearHistory {
-    [self.tracksStorage removeAllObjects];
-    [[NSUserDefaults standardUserDefaults] removeObjectForKey:[self scopedDefaultsKey]];
-    [[NSNotificationCenter defaultCenter] postNotificationName:SPHistoryDidUpdateNotification object:self];
+    @synchronized (self) {
+        [self ensureScopeMatchesCurrentUserLocked];
+        [self.tracksStorage removeAllObjects];
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:[self scopedDefaultsKey]];
+    }
+    dispatch_block_t block = ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:SPHistoryDidUpdateNotification object:self];
+    };
+    if (NSThread.isMainThread) block(); else dispatch_async(dispatch_get_main_queue(), block);
 }
 
 - (void)saveToDefaults {

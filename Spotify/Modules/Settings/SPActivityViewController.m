@@ -13,7 +13,11 @@
 
 @interface SPActivityViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, strong) UIView *navBar;
+@property (nonatomic, strong) UIView *navDivider;
 @property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) UIRefreshControl *refreshControl;
+@property (nonatomic, strong) UIActivityIndicatorView *loadingSpinner;
+@property (nonatomic, strong) UIView *emptyStateView;
 @property (nonatomic, copy) NSArray<id<SPMediaItem>> *items;
 @end
 
@@ -21,12 +25,26 @@
 
 - (UIStatusBarStyle)preferredStatusBarStyle { return [SPTheme preferredStatusBarStyle]; }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = SPTheme.backgroundColor;
     _items = @[];
     [self setupViews];
-    [self loadData];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(sourceDidChange)
+                                                 name:SPMusicSourceDidChangeNotification
+                                               object:nil];
+    [self loadDataForceRefresh:NO];
+}
+
+- (void)sourceDidChange {
+    self.items = @[];
+    [self.tableView reloadData];
+    [self loadDataForceRefresh:NO];
 }
 
 - (void)setupViews {
@@ -46,9 +64,10 @@
     titleLabel.textColor = SPTheme.textPrimaryColor;
     [_navBar addSubview:titleLabel];
 
-    UIView *divider = [UIView new];
-    divider.backgroundColor = SPTheme.separatorColor;
-    [_navBar addSubview:divider];
+    _navDivider = [UIView new];
+    _navDivider.backgroundColor = SPTheme.separatorColor;
+    _navDivider.alpha = 0.0;
+    [_navBar addSubview:_navDivider];
 
     _tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
     _tableView.backgroundColor = SPTheme.backgroundColor;
@@ -58,6 +77,32 @@
     _tableView.delegate = self;
     [_tableView registerClass:SPMediaRowCell.class forCellReuseIdentifier:[SPMediaRowCell reuseId]];
     [self.view addSubview:_tableView];
+
+    _refreshControl = [UIRefreshControl new];
+    _refreshControl.tintColor = SPTheme.accentColor;
+    [_refreshControl addTarget:self action:@selector(refreshData) forControlEvents:UIControlEventValueChanged];
+    _tableView.refreshControl = _refreshControl;
+
+    _loadingSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
+    _loadingSpinner.color = SPTheme.accentColor;
+    _loadingSpinner.hidesWhenStopped = YES;
+    [self.view addSubview:_loadingSpinner];
+
+    _emptyStateView = [UIView new];
+    _emptyStateView.hidden = YES;
+    [self.view addSubview:_emptyStateView];
+
+    UIImageView *emptyIcon = [[UIImageView alloc] initWithImage:[SPTheme symbol:@"sparkles" size:42 weight:UIImageSymbolWeightLight]];
+    emptyIcon.tintColor = SPTheme.textTertiaryColor;
+    UILabel *emptyLabel = [UILabel new];
+    emptyLabel.text = @"暂无最新动态\n下拉即可刷新最新发行歌单与专辑";
+    emptyLabel.font = [SPTheme fontOfSize:14 weight:UIFontWeightRegular];
+    emptyLabel.textColor = SPTheme.textSecondaryColor;
+    emptyLabel.textAlignment = NSTextAlignmentCenter;
+    emptyLabel.numberOfLines = 0;
+    emptyLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
+    [_emptyStateView addSubview:emptyIcon];
+    [_emptyStateView addSubview:emptyLabel];
 
     [_navBar mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.left.right.equalTo(self.view);
@@ -72,7 +117,7 @@
         make.centerX.equalTo(self.navBar);
         make.centerY.equalTo(backBtn);
     }];
-    [divider mas_makeConstraints:^(MASConstraintMaker *make) {
+    [_navDivider mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.bottom.equalTo(self.navBar);
         make.height.mas_equalTo(1.0 / UIScreen.mainScreen.scale);
     }];
@@ -80,12 +125,41 @@
         make.top.equalTo(self.navBar.mas_bottom);
         make.left.right.bottom.equalTo(self.view);
     }];
+    [_loadingSpinner mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.center.equalTo(self.tableView);
+    }];
+    [_emptyStateView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.center.equalTo(self.tableView);
+        make.left.greaterThanOrEqualTo(self.view).offset(32);
+    }];
+    [emptyIcon mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.centerX.equalTo(self.emptyStateView);
+    }];
+    [emptyLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(emptyIcon.mas_bottom).offset(14);
+        make.left.right.bottom.equalTo(self.emptyStateView);
+    }];
 }
 
 - (void)loadData {
+    [self loadDataForceRefresh:NO];
+}
+
+- (void)refreshData {
+    [self loadDataForceRefresh:YES];
+}
+
+- (void)loadDataForceRefresh:(BOOL)forceRefresh {
+    if (self.items.count == 0 && !self.refreshControl.isRefreshing) {
+        [self.loadingSpinner startAnimating];
+    }
+    self.emptyStateView.hidden = YES;
     __weak typeof(self) weakSelf = self;
-    [[SPMusicRepository shared] fetchHomeSectionsWithCompletion:^(NSArray<SPHomeSection *> *sections, NSError *error) {
+    void (^completion)(NSArray<SPHomeSection *> *, NSError *) = ^(NSArray<SPHomeSection *> *sections, NSError *error) {
+        [weakSelf.loadingSpinner stopAnimating];
+        [weakSelf.refreshControl endRefreshing];
         if (error) {
+            weakSelf.emptyStateView.hidden = (weakSelf.items.count > 0);
             [SPToast showMessage:@"加载动态失败"];
             return;
         }
@@ -103,8 +177,19 @@
             }
         }
         weakSelf.items = collected;
+        weakSelf.emptyStateView.hidden = (collected.count > 0);
         [weakSelf.tableView reloadData];
-    }];
+    };
+    if (forceRefresh) {
+        [[SPMusicRepository shared] refreshHomeSectionsWithCompletion:completion];
+    } else {
+        [[SPMusicRepository shared] fetchHomeSectionsWithCompletion:completion];
+    }
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    CGFloat offsetY = MAX(0.0, scrollView.contentOffset.y);
+    self.navDivider.alpha = MIN(MAX(offsetY / 18.0, 0.0), 1.0);
 }
 
 - (void)backTapped {
@@ -123,7 +208,10 @@
     id<SPMediaItem> item = self.items[indexPath.row];
     cell.rowView.coverSize = 56;
     [cell.rowView configureWithItem:item];
-    cell.rowView.subtitleLabel.text = [NSString stringWithFormat:@"最新发布 · %@", item.subtitle];
+    NSString *sub = item.subtitle;
+    cell.rowView.subtitleLabel.text = (sub.length > 0)
+        ? [NSString stringWithFormat:@"最新发布 · %@", sub]
+        : @"最新发布";
     cell.showsMoreButton = NO;
     return cell;
 }

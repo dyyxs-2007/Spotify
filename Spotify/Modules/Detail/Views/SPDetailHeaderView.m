@@ -23,6 +23,7 @@
 @property (nonatomic, strong) SPScaleButton *shareButton;
 @property (nonatomic, strong) SPScaleButton *moreButton;
 @property (nonatomic, strong) SPScaleButton *shuffleButton;
+@property (nonatomic, strong) UIView *shuffleDot;
 @property (nonatomic, strong) SPScaleButton *playButton;
 @property (nonatomic, assign) BOOL liked;
 @property (nonatomic, assign) BOOL followed;
@@ -51,7 +52,7 @@
 - (void)setupViews {
     _shadowContainer = [UIView new];
     _shadowContainer.layer.shadowColor = UIColor.blackColor.CGColor;
-    _shadowContainer.layer.shadowOpacity = 0.55;
+    _shadowContainer.layer.shadowOpacity = (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleLight) ? 0.20 : 0.55;
     _shadowContainer.layer.shadowRadius = 18;
     _shadowContainer.layer.shadowOffset = CGSizeMake(0, 10);
     [self addSubview:_shadowContainer];
@@ -66,18 +67,21 @@
     _titleLabel.font = [SPTheme fontOfSize:22 weight:UIFontWeightBold];
     _titleLabel.textColor = SPTheme.textPrimaryColor;
     _titleLabel.numberOfLines = 2;
+    _titleLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
     [self addSubview:_titleLabel];
 
     _descLabel = [UILabel new];
     _descLabel.font = SPTheme.captionFont;
     _descLabel.textColor = SPTheme.textSecondaryColor;
     _descLabel.numberOfLines = 2;
+    _descLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
     [self addSubview:_descLabel];
 
     _metaLabel = [UILabel new];
-    _metaLabel.font = [SPTheme fontOfSize:13 weight:UIFontWeightMedium];
+    _metaLabel.font = [SPTheme monospacedDigitFontOfSize:13 weight:UIFontWeightMedium];
     _metaLabel.textColor = SPTheme.textSecondaryColor;
     _metaLabel.numberOfLines = 2;
+    _metaLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
     [self addSubview:_metaLabel];
 
     UIButtonConfiguration *followConfig = [UIButtonConfiguration plainButtonConfiguration];
@@ -104,7 +108,9 @@
     _playButton = [SPScaleButton buttonWithType:UIButtonTypeCustom];
     _playButton.backgroundColor = SPTheme.accentColor;
     _playButton.layer.cornerRadius = 28;
-    _playButton.tintColor = UIColor.blackColor;
+    _playButton.tintColor = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *tc) {
+        return (tc.userInterfaceStyle == UIUserInterfaceStyleLight) ? UIColor.whiteColor : UIColor.blackColor;
+    }];
     _playButton.opticalHorizontalOffset = 2.0;
     [_playButton sp_setSymbol:@"play.fill" size:22 weight:UIImageSymbolWeightBold animated:NO];
     [_playButton addTarget:self action:@selector(playTapped) forControlEvents:UIControlEventTouchUpInside];
@@ -112,10 +118,16 @@
     UIStackView *leftActions = [[UIStackView alloc] initWithArrangedSubviews:@[_followButton, _likeButton, _shareButton, _moreButton]];
     leftActions.axis = UILayoutConstraintAxisHorizontal;
     leftActions.alignment = UIStackViewAlignmentCenter;
-    leftActions.spacing = 4;
+    leftActions.spacing = 6;
+
+    _shuffleDot = [UIView new];
+    _shuffleDot.backgroundColor = SPTheme.accentColor;
+    _shuffleDot.layer.cornerRadius = 2.0;
+    _shuffleDot.hidden = YES;
 
     [self addSubview:leftActions];
     [self addSubview:_shuffleButton];
+    [self addSubview:_shuffleDot];
     [self addSubview:_playButton];
 
     [_shadowContainer mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -146,22 +158,27 @@
         make.bottom.equalTo(self).offset(-12);
     }];
     [_shuffleButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.playButton.mas_left).offset(-12);
+        make.right.equalTo(self.playButton.mas_left).offset(-10);
         make.centerY.equalTo(self.playButton);
-        make.size.mas_equalTo(CGSizeMake(40, 40));
+        make.size.mas_equalTo(CGSizeMake(44, 44));
+    }];
+    [_shuffleDot mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.shuffleButton.mas_bottom).offset(-4);
+        make.centerX.equalTo(self.shuffleButton);
+        make.size.mas_equalTo(CGSizeMake(4, 4));
     }];
     [_followButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.height.mas_equalTo(32);
         make.width.mas_greaterThanOrEqualTo(72);
     }];
     [_likeButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.size.mas_equalTo(CGSizeMake(40, 40));
+        make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
     [_shareButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.size.mas_equalTo(CGSizeMake(40, 40));
+        make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
     [_moreButton mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.size.mas_equalTo(CGSizeMake(40, 40));
+        make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
     [leftActions mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self).offset(SPMarginHorizontal - 4);
@@ -198,6 +215,7 @@
         if (![weakSelf.currentItemId isEqualToString:itemId]) return;
         if (weakSelf.dominantColorHandler) weakSelf.dominantColorHandler(color);
     }];
+    self.coverView.layer.cornerCurve = self.circularCover ? kCACornerCurveCircular : kCACornerCurveContinuous;
 
     NSString *desc = nil;
     NSString *owner = nil;
@@ -214,7 +232,11 @@
         }
     } else if ([item isKindOfClass:SPAlbum.class]) {
         SPAlbum *al = (SPAlbum *)item;
-        owner = [NSString stringWithFormat:@"%@ · %@ · %ld", [al artistNames], al.albumType ?: @"专辑", (long)al.releaseYear];
+        if (al.releaseYear > 0) {
+            owner = [NSString stringWithFormat:@"%@ · %@ · %ld", [al artistNames], al.albumType ?: @"专辑", (long)al.releaseYear];
+        } else {
+            owner = [NSString stringWithFormat:@"%@ · %@", [al artistNames], al.albumType ?: @"专辑"];
+        }
     } else {
         owner = @"艺人热门歌曲";
     }
@@ -241,6 +263,7 @@
     self.playButton.opticalHorizontalOffset = isPlaying ? 0.0 : 2.0;
     [self.playButton sp_setSymbol:symbol size:22 weight:UIImageSymbolWeightBold animated:animated];
     self.shuffleButton.tintColor = shuffleEnabled ? SPTheme.accentColor : SPTheme.textSecondaryColor;
+    self.shuffleDot.hidden = !shuffleEnabled;
 }
 
 - (void)updateFollowState:(BOOL)followed animated:(BOOL)animated {
@@ -275,6 +298,7 @@
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     [super traitCollectionDidChange:previousTraitCollection];
     if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection]) {
+        self.shadowContainer.layer.shadowOpacity = (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleLight) ? 0.20 : 0.55;
         [self updateFollowState:self.followed animated:NO];
     }
 }
@@ -302,6 +326,11 @@
 
 - (void)shareTapped {
     [SPHaptics light];
+    NSString *title = self.titleLabel.text ?: @"Spotify 音乐";
+    NSString *meta = self.metaLabel.text ?: @"";
+    UIPasteboard.generalPasteboard.string = meta.length > 0
+        ? [NSString stringWithFormat:@"正在 Spotify 收听「%@」(%@)", title, meta]
+        : [NSString stringWithFormat:@"正在 Spotify 收听「%@」", title];
     [SPToast showMessage:@"已复制分享信息"];
 }
 

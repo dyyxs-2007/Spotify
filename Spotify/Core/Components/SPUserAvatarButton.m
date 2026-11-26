@@ -30,7 +30,11 @@
         _initialLabel = [UILabel new];
         _initialLabel.textAlignment = NSTextAlignmentCenter;
         _initialLabel.font = [SPTheme fontOfSize:round(diameter * 0.46) weight:UIFontWeightBold];
-        _initialLabel.textColor = UIColor.blackColor;
+        _initialLabel.textColor = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *tc) {
+            return (tc.userInterfaceStyle == UIUserInterfaceStyleLight)
+                ? UIColor.whiteColor
+                : [UIColor sp_colorWithHex:0x0B0B0C];
+        }];
         _initialLabel.userInteractionEnabled = NO;
         [self addSubview:_initialLabel];
 
@@ -48,9 +52,18 @@
 
         [self addTarget:self action:@selector(defaultTapped) forControlEvents:UIControlEventTouchUpInside];
         [[SPAuthService shared] addObserver:self];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(themeDidChange)
+                                                     name:SPThemeDidChangeNotification
+                                                   object:nil];
         [self reloadAuthState];
     }
     return self;
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[SPAuthService shared] removeObserver:self];
 }
 
 - (void)reloadAuthState {
@@ -64,22 +77,28 @@
     } else {
         self.backgroundColor = SPTheme.highlightColor;
         self.layer.borderWidth = 1.0 / UIScreen.mainScreen.scale;
-        self.layer.borderColor = [SPTheme.separatorColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
+        self.layer.borderColor = [SPTheme.separatorColor resolvedColorWithTraitCollection:[SPTheme resolvedTraitCollectionForView:self]].CGColor;
         self.initialLabel.hidden = YES;
         self.guestIconView.hidden = NO;
+    }
+}
+
+- (void)themeDidChange {
+    if (![SPAuthService shared].isLoggedIn) {
+        self.layer.borderColor = [SPTheme.separatorColor resolvedColorWithTraitCollection:[SPTheme resolvedTraitCollectionForView:self]].CGColor;
     }
 }
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     [super traitCollectionDidChange:previousTraitCollection];
     if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection] && ![SPAuthService shared].isLoggedIn) {
-        self.layer.borderColor = [SPTheme.separatorColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
+        self.layer.borderColor = [SPTheme.separatorColor resolvedColorWithTraitCollection:[SPTheme resolvedTraitCollectionForView:self]].CGColor;
     }
 }
 
 - (void)defaultTapped {
-    // 若外部未另绑自定义 target，则自动展开左侧抽屉
-    if ([self actionsForTarget:nil forControlEvent:UIControlEventTouchUpInside].count > 1) return;
+    // 若外部另绑了其他 target（除 self 自身），则交由外部处理；否则默认展开左侧抽屉
+    if (self.allTargets.count > 1) return;
     [SPHaptics light];
     UIViewController *root = self.window.rootViewController;
     if ([root isKindOfClass:SPRootViewController.class]) {

@@ -24,13 +24,14 @@ static const CGFloat SPMiniPlayerHeight = 56.0;
 @property (class, nonatomic, assign, readonly) BOOL isDarkMode;
 + (void)applyInterfaceStyle:(UIUserInterfaceStyle)style animated:(BOOL)animated;
 + (UIStatusBarStyle)preferredStatusBarStyle;
++ (UITraitCollection *)resolvedTraitCollectionForView:(nullable UIView *)view;
 
 #pragma mark - Dynamic Semantic Colors
 @property (class, nonatomic, readonly) UIColor *backgroundColor;     ///< 主背景（Dark #121212 / Light #F5F6F8）
 @property (class, nonatomic, readonly) UIColor *elevatedColor;       ///< 次级卡片（Dark #1B1B1E / Light #FFFFFF）
 @property (class, nonatomic, readonly) UIColor *highlightColor;      ///< 高亮填充（Dark #28282D / Light #EAECEF）
 @property (class, nonatomic, readonly) UIColor *pressedColor;        ///< 按压态（Dark #3A3A40 / Light #DCE0E6）
-@property (class, nonatomic, readonly) UIColor *accentColor;         ///< 主题强调绿（Dark #1ED760 / Light #16A34A）
+@property (class, nonatomic, readonly) UIColor *accentColor;         ///< 主题强调绿（Dark #1ED760 / Light #15803D）
 @property (class, nonatomic, readonly) UIColor *brandGreenColor;     ///< 恒定品牌绿 #1ED760（用于深色沉浸页）
 @property (class, nonatomic, readonly) UIColor *textPrimaryColor;    ///< 主文字
 @property (class, nonatomic, readonly) UIColor *textSecondaryColor;  ///< 次级文字
@@ -52,6 +53,11 @@ static const CGFloat SPMiniPlayerHeight = 56.0;
 #pragma mark - Helpers
 /// 统一的 SF Symbol 图标
 + (UIImage *)symbol:(NSString *)name size:(CGFloat)size weight:(UIImageSymbolWeight)weight;
+
+/// 安全配置 ActionSheet / ShareSheet 的 popoverPresentationController（防止 iPad / Catalyst 崩溃）
++ (void)configurePopoverForViewController:(UIViewController *)presentedVC
+                               sourceView:(nullable UIView *)sourceView
+                             presentingVC:(nullable UIViewController *)presentingVC;
 
 @end
 

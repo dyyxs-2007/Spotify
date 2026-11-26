@@ -49,14 +49,9 @@ static NSErrorDomain const SPNeteaseAuthErrorDomain = @"com.dyyxs.spotify.auth.n
                  ?: [SPNeteaseParser stringValue:acc[@"id"]]
                  ?: account;
 
-    if (cookie.length > 0) {
-        [SPNeteaseSession shared].userCookie = cookie;
-        [SPNeteaseSession shared].userId = uid;
-    }
-
     SPUser *user = [SPUser new];
     user.userId = uid;
-    user.account = account.length > 0 ? account : [NSString stringWithFormat:@"uid:%@", uid];
+    user.account = account.length > 0 ? account : [NSString stringWithFormat:@"ID: %@", uid];
     user.nickname = [SPNeteaseParser stringValue:profile[@"nickname"]] ?: user.account;
     user.planName = ([profile[@"vipType"] respondsToSelector:@selector(integerValue)] && [profile[@"vipType"] integerValue] > 0)
         ? @"网易云 VIP" : @"网易云账号";
@@ -149,8 +144,7 @@ static NSErrorDomain const SPNeteaseAuthErrorDomain = @"com.dyyxs.spotify.auth.n
             });
             return;
         }
-        NSString *nickname = [SPNeteaseParser stringValue:profile[@"nickname"]] ?: @"网易云听友";
-        SPUser *user = [weakSelf parseUserFromAuthJSON:data account:nickname fallbackCookie:cookie];
+        SPUser *user = [weakSelf parseUserFromAuthJSON:data account:@"" fallbackCookie:cookie];
         SP_AUTH_MAIN(^{
             if (completion) completion(user, nil);
         });

@@ -119,12 +119,14 @@
         _titleLabel.font = [SPTheme fontOfSize:30 weight:UIFontWeightBold];
         _titleLabel.textColor = UIColor.whiteColor;
         _titleLabel.numberOfLines = 0;
+        _titleLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
         [_textStackContainer addSubview:_titleLabel];
 
         _subtitleLabel = [UILabel new];
         _subtitleLabel.font = [SPTheme fontOfSize:15 weight:UIFontWeightRegular];
         _subtitleLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.74];
         _subtitleLabel.numberOfLines = 0;
+        _subtitleLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
         [_textStackContainer addSubview:_subtitleLabel];
 
         [_ambientBackground mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -550,8 +552,7 @@
     }
 
     [SceneDelegate setHasCompletedOnboarding:YES];
-    SPAuthWelcomeViewController *welcome = [[SPAuthWelcomeViewController alloc] initWithContext:SPAuthPresentationContextGate];
-    [self.navigationController pushViewController:welcome animated:YES];
+    [[SceneDelegate shared] transitionToAuthWelcomeAnimated:YES];
 }
 
 #pragma mark - UICollectionViewDataSource / UIScrollViewDelegate

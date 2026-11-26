@@ -9,6 +9,7 @@
 @property (nonatomic, copy) NSArray<SPTrack *> *originalTracks;
 @property (nonatomic, copy) NSArray<SPTrack *> *playOrderTracks;
 @property (nonatomic, assign) NSInteger currentIndex;
+@property (nonatomic, assign) NSUInteger pendingInsertedCount;
 @end
 
 @implementation SPPlayQueue
@@ -48,6 +49,7 @@
 }
 
 - (void)replaceWithTracks:(NSArray<SPTrack *> *)tracks startIndex:(NSUInteger)startIndex {
+    self.pendingInsertedCount = 0;
     if (tracks.count == 0 || startIndex >= tracks.count) {
         self.originalTracks = @[];
         self.playOrderTracks = @[];
@@ -72,27 +74,45 @@
     if (self.originalTracks.count == 0) return;
     SPTrack *current = self.currentTrack;
 
+    // 保留尚未播放的“下一首播放”插队曲目，切换随机模式后仍紧跟当前曲目
+    NSArray<SPTrack *> *pendingInserted = @[];
+    if (self.pendingInsertedCount > 0 && self.currentIndex >= 0) {
+        NSInteger start = self.currentIndex + 1;
+        NSInteger available = MAX((NSInteger)0, (NSInteger)self.playOrderTracks.count - start);
+        NSUInteger take = MIN(self.pendingInsertedCount, (NSUInteger)available);
+        if (take > 0) {
+            pendingInserted = [self.playOrderTracks subarrayWithRange:NSMakeRange((NSUInteger)start, take)];
+        }
+    }
+
+    NSMutableArray<SPTrack *> *rebuilt = nil;
     if (shuffleEnabled) {
         NSUInteger anchorIdx = current ? [self.originalTracks indexOfObject:current] : NSNotFound;
-        self.playOrderTracks = [self shuffledTracksFrom:self.originalTracks anchor:current anchorIndex:anchorIdx];
+        rebuilt = [[self shuffledTracksFrom:self.originalTracks anchor:current anchorIndex:anchorIdx] mutableCopy];
         self.currentIndex = 0;
     } else {
-        self.playOrderTracks = self.originalTracks;
+        rebuilt = [self.originalTracks mutableCopy];
         if (current) {
             NSUInteger idx = [self.originalTracks indexOfObject:current];
             if (idx != NSNotFound) {
                 self.currentIndex = (NSInteger)idx;
             } else {
                 // 当前曲目可能是通过"下一首播放"临时插队的，插入首位以保持连贯
-                NSMutableArray *merged = [self.originalTracks mutableCopy];
-                [merged insertObject:current atIndex:0];
-                self.playOrderTracks = [merged copy];
+                [rebuilt insertObject:current atIndex:0];
                 self.currentIndex = 0;
             }
         } else {
             self.currentIndex = 0;
         }
     }
+
+    if (pendingInserted.count > 0) {
+        NSUInteger insertPos = (NSUInteger)MIN(MAX(self.currentIndex + 1, 0), (NSInteger)rebuilt.count);
+        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(insertPos, pendingInserted.count)];
+        [rebuilt insertObjects:pendingInserted atIndexes:indexSet];
+    }
+    self.pendingInsertedCount = pendingInserted.count;
+    self.playOrderTracks = [rebuilt copy];
 }
 
 - (void)insertNextTrack:(SPTrack *)track {
@@ -101,12 +121,21 @@
         self.originalTracks = @[track];
         self.playOrderTracks = @[track];
         self.currentIndex = 0;
+        self.pendingInsertedCount = 0;
         return;
     }
     NSMutableArray *mutable = [self.playOrderTracks mutableCopy];
     NSInteger insertIndex = MIN(MAX(self.currentIndex + 1, 0), (NSInteger)mutable.count);
     [mutable insertObject:track atIndex:insertIndex];
     self.playOrderTracks = [mutable copy];
+    self.pendingInsertedCount += 1;
+}
+
+- (void)clear {
+    self.originalTracks = @[];
+    self.playOrderTracks = @[];
+    self.currentIndex = -1;
+    self.pendingInsertedCount = 0;
 }
 
 - (SPTrack *)advanceToNextByAutoPlay:(BOOL)isAutoPlay {
@@ -116,10 +145,14 @@
     }
     if (self.currentIndex + 1 < (NSInteger)self.playOrderTracks.count) {
         self.currentIndex += 1;
+        if (self.pendingInsertedCount > 0) {
+            self.pendingInsertedCount -= 1;
+        }
         return self.currentTrack;
     }
     if (!isAutoPlay || self.repeatMode == SPRepeatModeAll) {
         self.currentIndex = 0;
+        self.pendingInsertedCount = 0;
         return self.currentTrack;
     }
     return nil;
@@ -136,6 +169,8 @@
     NSInteger target = self.currentIndex + 1 + (NSInteger)upNextIndex;
     if (target < 0 || target >= (NSInteger)self.playOrderTracks.count) return nil;
     self.currentIndex = target;
+    NSUInteger consumed = upNextIndex + 1;
+    self.pendingInsertedCount = (self.pendingInsertedCount > consumed) ? (self.pendingInsertedCount - consumed) : 0;
     return self.currentTrack;
 }
 

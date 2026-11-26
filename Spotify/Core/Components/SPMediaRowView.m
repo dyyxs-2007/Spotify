@@ -42,7 +42,7 @@
         titleRow.spacing = 6;
 
         _subtitleLabel = [UILabel new];
-        _subtitleLabel.font = SPTheme.captionFont;
+        _subtitleLabel.font = [SPTheme monospacedDigitFontOfSize:13 weight:UIFontWeightRegular];
         _subtitleLabel.textColor = SPTheme.textSecondaryColor;
 
         _textStack = [[UIStackView alloc] initWithArrangedSubviews:@[titleRow, _subtitleLabel]];

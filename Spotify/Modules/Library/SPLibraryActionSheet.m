@@ -95,6 +95,7 @@
     }]];
 
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:vc];
     [vc presentViewController:sheet animated:YES completion:nil];
 }
 

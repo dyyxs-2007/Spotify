@@ -21,6 +21,7 @@ static void * const SPAVPlayerEngineContext = (void *)&SPAVPlayerEngineContext;
 @property (nonatomic, assign) CFAbsoluteTime lastSeekTimestamp;
 @property (nonatomic, assign) BOOL shouldAutoPlay;
 @property (nonatomic, assign) BOOL seeking;
+@property (nonatomic, assign) NSUInteger seekGeneration;
 @end
 
 @implementation SPAVPlayerEngine
@@ -66,6 +67,8 @@ static void * const SPAVPlayerEngineContext = (void *)&SPAVPlayerEngineContext;
 - (void)loadAsset:(AVURLAsset *)asset autoPlay:(BOOL)autoPlay {
     [self teardownCurrentItem];
     self.shouldAutoPlay = autoPlay;
+    self.seeking = NO;
+    self.seekGeneration += 1;
     self.pendingSeekTime = -1;
     self.lastSeekTimestamp = 0;
     self.currentTime = 0;
@@ -96,7 +99,11 @@ static void * const SPAVPlayerEngineContext = (void *)&SPAVPlayerEngineContext;
     if (!self.currentItem) return;
     if (self.currentItem.status == AVPlayerItemStatusReadyToPlay) {
         [self.player play];
-        [self updateState:SPPlaybackStatePlaying];
+        if (self.player.timeControlStatus == AVPlayerTimeControlStatusPlaying) {
+            [self updateState:SPPlaybackStatePlaying];
+        } else {
+            [self updateState:SPPlaybackStateLoading];
+        }
     } else if (self.currentItem.status == AVPlayerItemStatusUnknown) {
         [self updateState:SPPlaybackStateLoading];
     }
@@ -112,6 +119,8 @@ static void * const SPAVPlayerEngineContext = (void *)&SPAVPlayerEngineContext;
 
 - (void)stop {
     self.shouldAutoPlay = NO;
+    self.seeking = NO;
+    self.seekGeneration += 1;
     self.pendingSeekTime = -1;
     [self.player pause];
     [self teardownCurrentItem];
@@ -135,6 +144,8 @@ static void * const SPAVPlayerEngineContext = (void *)&SPAVPlayerEngineContext;
     }
 
     self.seeking = YES;
+    self.seekGeneration += 1;
+    NSUInteger generation = self.seekGeneration;
     self.currentTime = clamped;
     [self notifyProgress];
 
@@ -145,12 +156,17 @@ static void * const SPAVPlayerEngineContext = (void *)&SPAVPlayerEngineContext;
              toleranceAfter:kCMTimeZero
           completionHandler:^(BOOL finished) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            weakSelf.seeking = NO;
-            if (finished) {
-                weakSelf.currentTime = clamped;
-                weakSelf.lastSeekTargetTime = clamped;
-                weakSelf.lastSeekTimestamp = CFAbsoluteTimeGetCurrent();
-                [weakSelf notifyProgress];
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+            // 仅当本次 seek 仍是最新代次时才解除 seeking，避免快速连续拖动时旧 seek 被取消提前放开进度保护
+            if (generation == strongSelf.seekGeneration) {
+                strongSelf.seeking = NO;
+                if (finished) {
+                    strongSelf.currentTime = clamped;
+                    strongSelf.lastSeekTargetTime = clamped;
+                    strongSelf.lastSeekTimestamp = CFAbsoluteTimeGetCurrent();
+                    [strongSelf notifyProgress];
+                }
             }
             if (completion) completion(finished);
         });
@@ -228,18 +244,29 @@ static void * const SPAVPlayerEngineContext = (void *)&SPAVPlayerEngineContext;
         if (self.pendingSeekTime >= 0) {
             NSTimeInterval target = self.pendingSeekTime;
             self.pendingSeekTime = -1;
+            AVPlayerItem *targetItem = item;
             __weak typeof(self) weakSelf = self;
             [self seekToTime:target completion:^(BOOL finished) {
-                if (weakSelf.shouldAutoPlay) {
-                    [weakSelf.player play];
-                    [weakSelf updateState:SPPlaybackStatePlaying];
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                if (!strongSelf || strongSelf.currentItem != targetItem) return;
+                if (strongSelf.shouldAutoPlay) {
+                    [strongSelf.player play];
+                    if (strongSelf.player.timeControlStatus == AVPlayerTimeControlStatusPlaying) {
+                        [strongSelf updateState:SPPlaybackStatePlaying];
+                    } else {
+                        [strongSelf updateState:SPPlaybackStateLoading];
+                    }
                 } else {
-                    [weakSelf updateState:SPPlaybackStatePaused];
+                    [strongSelf updateState:SPPlaybackStatePaused];
                 }
             }];
         } else if (self.shouldAutoPlay) {
             [self.player play];
-            [self updateState:SPPlaybackStatePlaying];
+            if (self.player.timeControlStatus == AVPlayerTimeControlStatusPlaying) {
+                [self updateState:SPPlaybackStatePlaying];
+            } else {
+                [self updateState:SPPlaybackStateLoading];
+            }
         } else {
             [self updateState:SPPlaybackStatePaused];
         }
@@ -258,7 +285,10 @@ static void * const SPAVPlayerEngineContext = (void *)&SPAVPlayerEngineContext;
     if (!self.currentItem || self.currentItem.status != AVPlayerItemStatusReadyToPlay) return;
     switch (self.player.timeControlStatus) {
         case AVPlayerTimeControlStatusPaused:
-            if (!self.shouldAutoPlay) [self updateState:SPPlaybackStatePaused];
+            if (!self.shouldAutoPlay || self.state == SPPlaybackStatePlaying) {
+                self.shouldAutoPlay = NO;
+                [self updateState:SPPlaybackStatePaused];
+            }
             break;
         case AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate:
             if (self.shouldAutoPlay) [self updateState:SPPlaybackStateLoading];
@@ -302,22 +332,30 @@ static void * const SPAVPlayerEngineContext = (void *)&SPAVPlayerEngineContext;
 }
 
 - (void)handleItemDidPlayToEnd:(NSNotification *)note {
-    if (note.object != self.currentItem) return;
+    AVPlayerItem *endedItem = note.object;
+    if (endedItem != self.currentItem) return;
+    __weak typeof(self) weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
-        if ([self.delegate respondsToSelector:@selector(audioEngineDidFinishPlaying:)]) {
-            [self.delegate audioEngineDidFinishPlaying:self];
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf || endedItem != strongSelf.currentItem) return;
+        if ([strongSelf.delegate respondsToSelector:@selector(audioEngineDidFinishPlaying:)]) {
+            [strongSelf.delegate audioEngineDidFinishPlaying:strongSelf];
         }
     });
 }
 
 - (void)handleItemFailedToPlayToEnd:(NSNotification *)note {
-    if (note.object != self.currentItem) return;
+    AVPlayerItem *failedItem = note.object;
+    if (failedItem != self.currentItem) return;
     NSError *error = note.userInfo[AVPlayerItemFailedToPlayToEndTimeErrorKey]
         ?: [NSError errorWithDomain:@"com.dyyxs.spotify.engine" code:-2 userInfo:@{NSLocalizedDescriptionKey: @"音频播放中断"}];
+    __weak typeof(self) weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self updateState:SPPlaybackStateFailed];
-        if ([self.delegate respondsToSelector:@selector(audioEngine:didFailWithError:)]) {
-            [self.delegate audioEngine:self didFailWithError:error];
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf || failedItem != strongSelf.currentItem) return;
+        [strongSelf updateState:SPPlaybackStateFailed];
+        if ([strongSelf.delegate respondsToSelector:@selector(audioEngine:didFailWithError:)]) {
+            [strongSelf.delegate audioEngine:strongSelf didFailWithError:error];
         }
     });
 }

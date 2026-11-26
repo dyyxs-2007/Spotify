@@ -24,6 +24,10 @@ static const NSTimeInterval SPAnonCookieTTL = 12 * 3600.0;
 
 @implementation SPNeteaseSession
 
+@synthesize userCookie = _userCookie;
+@synthesize userId = _userId;
+@synthesize anonymousCookie = _anonymousCookie;
+
 + (instancetype)shared {
     static SPNeteaseSession *instance;
     static dispatch_once_t onceToken;
@@ -63,6 +67,12 @@ static const NSTimeInterval SPAnonCookieTTL = 12 * 3600.0;
     return self;
 }
 
+- (NSString *)userCookie {
+    @synchronized (self) {
+        return _userCookie;
+    }
+}
+
 - (void)setUserCookie:(NSString *)userCookie {
     @synchronized (self) {
         _userCookie = [userCookie copy];
@@ -74,6 +84,12 @@ static const NSTimeInterval SPAnonCookieTTL = 12 * 3600.0;
     }
 }
 
+- (NSString *)userId {
+    @synchronized (self) {
+        return _userId;
+    }
+}
+
 - (void)setUserId:(NSString *)userId {
     @synchronized (self) {
         _userId = [userId copy];
@@ -82,6 +98,12 @@ static const NSTimeInterval SPAnonCookieTTL = 12 * 3600.0;
         } else {
             [SPKeychainStore deleteValueForKey:SPNeteaseUserIdKeychainKey];
         }
+    }
+}
+
+- (NSString *)anonymousCookie {
+    @synchronized (self) {
+        return _anonymousCookie;
     }
 }
 
@@ -100,8 +122,8 @@ static const NSTimeInterval SPAnonCookieTTL = 12 * 3600.0;
 
 - (NSString *)activeCookie {
     @synchronized (self) {
-        if (self.userCookie.length > 0) return self.userCookie;
-        if (self.anonymousCookie.length > 0) return self.anonymousCookie;
+        if (_userCookie.length > 0) return _userCookie;
+        if (_anonymousCookie.length > 0) return _anonymousCookie;
         return nil;
     }
 }

@@ -13,6 +13,7 @@
 
 @interface SPHistoryViewController () <UITableViewDataSource, UITableViewDelegate, SPPlayerObserver>
 @property (nonatomic, strong) UIView *navBar;
+@property (nonatomic, strong) UIView *navDivider;
 @property (nonatomic, strong) SPScaleButton *clearButton;
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) UIView *emptyStateView;
@@ -63,9 +64,10 @@
     [_clearButton addTarget:self action:@selector(clearTapped) forControlEvents:UIControlEventTouchUpInside];
     [_navBar addSubview:_clearButton];
 
-    UIView *divider = [UIView new];
-    divider.backgroundColor = SPTheme.separatorColor;
-    [_navBar addSubview:divider];
+    _navDivider = [UIView new];
+    _navDivider.backgroundColor = SPTheme.separatorColor;
+    _navDivider.alpha = 0.0;
+    [_navBar addSubview:_navDivider];
 
     _tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
     _tableView.backgroundColor = SPTheme.backgroundColor;
@@ -88,6 +90,7 @@
     emptyLabel.textColor = SPTheme.textSecondaryColor;
     emptyLabel.textAlignment = NSTextAlignmentCenter;
     emptyLabel.numberOfLines = 0;
+    emptyLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
     [_emptyStateView addSubview:emptyIcon];
     [_emptyStateView addSubview:emptyLabel];
 
@@ -109,7 +112,7 @@
         make.centerY.equalTo(backBtn);
         make.height.mas_equalTo(44);
     }];
-    [divider mas_makeConstraints:^(MASConstraintMaker *make) {
+    [_navDivider mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.bottom.equalTo(self.navBar);
         make.height.mas_equalTo(1.0 / UIScreen.mainScreen.scale);
     }];
@@ -144,8 +147,23 @@
 
 - (void)clearTapped {
     [SPHaptics medium];
-    [[SPHistoryStore shared] clearHistory];
-    [SPToast showMessage:@"已清空最近收听记录"];
+    UIAlertController *sheet = [UIAlertController alertControllerWithTitle:@"清空最近收听记录？"
+                                                                   message:@"清空后当前账号的收听足迹将无法恢复"
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    sheet.overrideUserInterfaceStyle = SPTheme.interfaceStyle;
+    sheet.view.tintColor = SPTheme.accentColor;
+    [sheet addAction:[UIAlertAction actionWithTitle:@"确认清空" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+        [[SPHistoryStore shared] clearHistory];
+        [SPToast showMessage:@"已清空最近收听记录"];
+    }]];
+    [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:self.clearButton presentingVC:self];
+    [self presentViewController:sheet animated:YES completion:nil];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    CGFloat offsetY = MAX(0.0, scrollView.contentOffset.y);
+    self.navDivider.alpha = MIN(MAX(offsetY / 18.0, 0.0), 1.0);
 }
 
 #pragma mark - UITableViewDataSource / Delegate
@@ -175,14 +193,22 @@
                                                             preferredStyle:UIAlertControllerStyleActionSheet];
     sheet.overrideUserInterfaceStyle = SPTheme.interfaceStyle;
     sheet.view.tintColor = SPTheme.accentColor;
+    __weak typeof(self) weakSelf = self;
     [sheet addAction:[UIAlertAction actionWithTitle:@"下一首播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         [[SPPlayerService shared] insertNextTrack:track];
         [SPToast showMessage:@"已添加到下一首播放"];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"立即播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        [[SPPlayerService shared] playTracks:self.tracks startIndex:index contextTitle:@"最近收听"];
+        NSUInteger currentIdx = [weakSelf.tracks indexOfObject:track];
+        if (currentIdx == NSNotFound && weakSelf.tracks.count > 0) {
+            currentIdx = (NSUInteger)MIN(MAX(index, 0), (NSInteger)weakSelf.tracks.count - 1);
+        }
+        if (currentIdx < weakSelf.tracks.count) {
+            [[SPPlayerService shared] playTracks:weakSelf.tracks startIndex:currentIdx contextTitle:@"最近收听"];
+        }
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 

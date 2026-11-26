@@ -14,6 +14,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithMiniPlayerView:(UIView *)miniPlayerView
                    sourceCoverProvider:(UIView *(^)(void))sourceCoverProvider;
 
+/// 在交互下拉退出过程中同步更新底层半透明背板透明度
+- (void)updateBackdropForDismissProgress:(CGFloat)progress;
+
 @end
 
 NS_ASSUME_NONNULL_END

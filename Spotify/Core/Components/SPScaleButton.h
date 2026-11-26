@@ -24,4 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
+/// 将垂直触控热区扩展至至少 44pt 的播放器进度条
+@interface SPProgressSlider : UISlider
+@end
+
 NS_ASSUME_NONNULL_END

@@ -9,6 +9,8 @@
 #import "SPMusicRepository.h"
 #import "SPLibraryStore.h"
 #import "SPHistoryStore.h"
+#import "SPListeningStatsStore.h"
+#import "SPPlayerService.h"
 #import "SPKeychainStore.h"
 #import <YYModel/YYModel.h>
 
@@ -20,6 +22,8 @@ static NSString * const SPSessionKeychainKey = @"sp.auth.current.session.v1";
 @end
 
 @implementation SPAuthService
+
+@synthesize currentUser = _currentUser;
 
 + (instancetype)shared {
     static SPAuthService *instance;
@@ -37,14 +41,41 @@ static NSString * const SPSessionKeychainKey = @"sp.auth.current.session.v1";
     return self;
 }
 
+- (nullable SPUser *)currentUser {
+    @synchronized (self) {
+        return _currentUser;
+    }
+}
+
+- (void)setCurrentUser:(nullable SPUser *)currentUser {
+    @synchronized (self) {
+        _currentUser = currentUser;
+    }
+}
+
 - (BOOL)isLoggedIn { return self.currentUser != nil; }
 
-- (void)addObserver:(id<SPAuthObserver>)observer { [self.observers addObject:observer]; }
-- (void)removeObserver:(id<SPAuthObserver>)observer { [self.observers removeObject:observer]; }
+- (void)addObserver:(id<SPAuthObserver>)observer {
+    if (!observer) return;
+    @synchronized (self) {
+        [self.observers addObject:observer];
+    }
+}
+
+- (void)removeObserver:(id<SPAuthObserver>)observer {
+    if (!observer) return;
+    @synchronized (self) {
+        [self.observers removeObject:observer];
+    }
+}
 
 - (void)notifyUserChanged {
     dispatch_block_t work = ^{
-        for (id<SPAuthObserver> observer in self.observers.allObjects) {
+        NSArray<id<SPAuthObserver>> *snapshot = nil;
+        @synchronized (self) {
+            snapshot = [self.observers.allObjects copy];
+        }
+        for (id<SPAuthObserver> observer in snapshot) {
             if ([observer respondsToSelector:@selector(authServiceDidChangeUser:)]) {
                 [observer authServiceDidChangeUser:self];
             }
@@ -57,7 +88,10 @@ static NSString * const SPSessionKeychainKey = @"sp.auth.current.session.v1";
 
 - (void)restoreSessionFromKeychain {
     NSData *data = [SPKeychainStore dataForKey:SPSessionKeychainKey];
-    if (!data) return;
+    if (!data) {
+        [[SPNeteaseSession shared] clearUserSession];
+        return;
+    }
     id json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
     if ([json isKindOfClass:NSDictionary.class]) {
         SPUser *user = [SPUser yy_modelWithJSON:json];
@@ -65,19 +99,49 @@ static NSString * const SPSessionKeychainKey = @"sp.auth.current.session.v1";
             self.currentUser = user;
         }
     }
+    if (self.currentUser.cookie.length > 0) {
+        [SPNeteaseSession shared].userCookie = self.currentUser.cookie;
+        [SPNeteaseSession shared].userId = self.currentUser.userId;
+    } else {
+        [[SPNeteaseSession shared] clearUserSession];
+    }
 }
 
 - (void)persistUserSession:(nullable SPUser *)user {
-    self.currentUser = user;
-    if (user) {
-        NSData *data = [user yy_modelToJSONData];
-        if (data) [SPKeychainStore setData:data forKey:SPSessionKeychainKey];
-    } else {
-        [SPKeychainStore deleteValueForKey:SPSessionKeychainKey];
+    BOOL accountChanged = NO;
+    @synchronized (self) {
+        SPUser *previousUser = _currentUser;
+        accountChanged = (user == nil)
+            || (previousUser == nil)
+            || ![previousUser.userId isEqualToString:user.userId]
+            || ![previousUser.account isEqualToString:user.account];
+
+        _currentUser = user;
+        if (user) {
+            NSData *data = [user yy_modelToJSONData];
+            if (data) [SPKeychainStore setData:data forKey:SPSessionKeychainKey];
+            if (user.cookie.length > 0) {
+                [SPNeteaseSession shared].userCookie = user.cookie;
+                [SPNeteaseSession shared].userId = user.userId;
+            } else {
+                // 切换到本地/邮箱账号时清理残留的网易云 Cookie，防止跨账号歌单混用
+                [[SPNeteaseSession shared] clearUserSession];
+            }
+        } else {
+            [SPKeychainStore deleteValueForKey:SPSessionKeychainKey];
+            [[SPNeteaseSession shared] clearUserSession];
+        }
     }
+
+    if (accountChanged) {
+        // 退出登录、切换账号或新账号接入时，立即停止播放并复位为空白播放页待机态
+        [[SPPlayerService shared] resetToEmptyState];
+    }
+
+    [[SPMusicRepository shared] clearMetadataCaches];
     [[SPLibraryStore shared] reloadForCurrentUser];
     [[SPHistoryStore shared] reloadForCurrentUser];
-    [[SPMusicRepository shared] clearMetadataCaches];
+    [[SPListeningStatsStore shared] reloadForCurrentUser];
     [self notifyUserChanged];
 }
 

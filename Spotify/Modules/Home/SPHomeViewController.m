@@ -12,8 +12,8 @@
 #import "SPUserAvatarButton.h"
 #import "SPScaleButton.h"
 #import "SPDetailViewController.h"
-#import "SPActivityViewController.h"
-#import "SPHistoryViewController.h"
+#import "SPListeningStatsViewController.h"
+#import "SPMoodRoamViewController.h"
 #import "SPSettingsViewController.h"
 #import "SPMusicRepository.h"
 #import "SPPlayerService.h"
@@ -84,6 +84,7 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
 @interface SPHomeViewController () <UICollectionViewDataSource, UICollectionViewDelegate, SPPlayerObserver>
 @property (nonatomic, strong) SPGradientView *ambientGradient;
 @property (nonatomic, strong) UIView *topBar;
+@property (nonatomic, strong) UIView *topBarHairline;
 @property (nonatomic, strong) UILabel *greetingLabel;
 @property (nonatomic, strong) NSArray<UIButton *> *chipButtons;
 @property (nonatomic, assign) NSInteger selectedChipIndex;
@@ -96,7 +97,7 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, NSNumber *> *hasMoreByCategory;
 @property (nonatomic, copy) NSArray<SPHomeSection *> *visibleSections;
 @property (nonatomic, assign) BOOL hasPlayedInitialEntrance;
-@property (nonatomic, assign) BOOL isLoadingMore;
+@property (nonatomic, strong) NSMutableSet<NSNumber *> *loadingMoreCategories;
 @property (nonatomic, assign) NSUInteger categoryRequestToken;
 @end
 
@@ -114,6 +115,7 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
     _sectionsByCategory = [NSMutableDictionary dictionary];
     _nextPageByCategory = [NSMutableDictionary dictionary];
     _hasMoreByCategory = [NSMutableDictionary dictionary];
+    _loadingMoreCategories = [NSMutableSet set];
     _visibleSections = @[];
     [self setupViews];
     [[SPPlayerService shared] addObserver:self];
@@ -132,12 +134,13 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
 }
 
 - (void)musicSourceDidChange {
+    self.categoryRequestToken += 1;
     self.selectedChipIndex = 0;
     [self updateChipStyles];
     [self.sectionsByCategory removeAllObjects];
     [self.nextPageByCategory removeAllObjects];
     [self.hasMoreByCategory removeAllObjects];
-    self.isLoadingMore = NO;
+    [self.loadingMoreCategories removeAllObjects];
     self.visibleSections = @[];
     [self.collectionView reloadData];
     [self showSkeleton];
@@ -162,6 +165,11 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
     _topBar = [UIView new];
     [self.view addSubview:_topBar];
 
+    _topBarHairline = [UIView new];
+    _topBarHairline.backgroundColor = SPTheme.separatorColor;
+    _topBarHairline.alpha = 0.0;
+    [_topBar addSubview:_topBarHairline];
+
     SPUserAvatarButton *avatarButton = [[SPUserAvatarButton alloc] initWithDiameter:34];
     [_topBar addSubview:avatarButton];
 
@@ -171,10 +179,13 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
     _greetingLabel.textColor = SPTheme.textPrimaryColor;
     [_topBar addSubview:_greetingLabel];
 
-    SPScaleButton *bellBtn = [self topIconButton:@"bell" action:@selector(bellTapped)];
-    SPScaleButton *historyBtn = [self topIconButton:@"clock.arrow.circlepath" action:@selector(historyTapped)];
+    SPScaleButton *roamBtn = [self topIconButton:@"headphones" action:@selector(roamTapped)];
+    roamBtn.accessibilityLabel = @"漫游电台";
+    SPScaleButton *statsBtn = [self topIconButton:@"chart.bar" action:@selector(statsTapped)];
+    statsBtn.accessibilityLabel = @"听歌统计";
     SPScaleButton *settingsBtn = [self topIconButton:@"gearshape" action:@selector(settingsTapped)];
-    UIStackView *actionStack = [[UIStackView alloc] initWithArrangedSubviews:@[bellBtn, historyBtn, settingsBtn]];
+    settingsBtn.accessibilityLabel = @"设置";
+    UIStackView *actionStack = [[UIStackView alloc] initWithArrangedSubviews:@[roamBtn, statsBtn, settingsBtn]];
     actionStack.spacing = 4;
     [_topBar addSubview:actionStack];
 
@@ -190,7 +201,7 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
             attrs[NSFontAttributeName] = [SPTheme fontOfSize:13 weight:UIFontWeightMedium];
             return attrs;
         };
-        UIButton *chip = [UIButton buttonWithConfiguration:config primaryAction:nil];
+        SPScaleButton *chip = [SPScaleButton buttonWithConfiguration:config primaryAction:nil];
         chip.tag = i;
         [chip addTarget:self action:@selector(chipTapped:) forControlEvents:UIControlEventTouchUpInside];
         [buttons addObject:chip];
@@ -240,13 +251,17 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
         make.centerY.equalTo(avatarButton);
     }];
     [actionStack mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.topBar).offset(-8);
+        make.right.equalTo(self.topBar).offset(-6);
         make.centerY.equalTo(avatarButton);
     }];
     [chipStack mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(avatarButton.mas_bottom).offset(14);
         make.left.equalTo(self.topBar).offset(SPMarginHorizontal);
         make.bottom.equalTo(self.topBar).offset(-8);
+    }];
+    [_topBarHairline mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.bottom.equalTo(self.topBar);
+        make.height.mas_equalTo(1.0 / UIScreen.mainScreen.scale);
     }];
     [_collectionView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.topBar.mas_bottom);
@@ -256,7 +271,7 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
 
 - (SPScaleButton *)topIconButton:(NSString *)symbol action:(SEL)action {
     SPScaleButton *btn = [SPScaleButton buttonWithType:UIButtonTypeSystem];
-    [btn sp_setSymbol:symbol size:20 weight:UIImageSymbolWeightRegular animated:NO];
+    [btn sp_setSymbol:symbol size:19 weight:UIImageSymbolWeightMedium animated:NO];
     btn.tintColor = SPTheme.textPrimaryColor;
     [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
     [btn mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -348,26 +363,29 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
     NSNumber *key = @(category);
     self.nextPageByCategory[key] = @1;
     self.hasMoreByCategory[key] = @YES;
-    self.isLoadingMore = NO;
+    [self.loadingMoreCategories removeObject:key];
     self.categoryRequestToken += 1;
     NSUInteger token = self.categoryRequestToken;
 
     __weak typeof(self) weakSelf = self;
     void (^handler)(NSArray<SPHomeSection *> *, NSError *) = ^(NSArray<SPHomeSection *> *sections, NSError *error) {
-        if (!weakSelf) return;
-        [weakSelf.refreshControl endRefreshing];
-        [weakSelf.skeletonView dismissAnimated:YES];
-        weakSelf.skeletonView = nil;
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        BOOL isCurrentRequest = (strongSelf.categoryRequestToken == token && [strongSelf currentCategory] == category);
+        if (!error) {
+            strongSelf.sectionsByCategory[key] = sections ?: @[];
+        }
+        if (!isCurrentRequest) return;
+
+        [strongSelf.refreshControl endRefreshing];
+        [strongSelf.skeletonView dismissAnimated:YES];
+        strongSelf.skeletonView = nil;
         if (error) {
             [SPToast showMessage:error.localizedDescription ?: @"加载首页失败"];
             return;
         }
-        weakSelf.sectionsByCategory[key] = sections ?: @[];
-        if (weakSelf.categoryRequestToken == token && [weakSelf currentCategory] == category) {
-            [weakSelf applyCurrentCategorySectionsAndScrollTop:NO];
-            [weakSelf playInitialEntranceIfNeeded];
-        }
-        [weakSelf warmupPlayerIfNeededWithSections:(sections ?: @[])];
+        [strongSelf applyCurrentCategorySectionsAndScrollTop:NO];
+        [strongSelf playInitialEntranceIfNeeded];
     };
     if (forceRefresh) {
         [[SPMusicRepository shared] refreshHomeSectionsForCategory:category completion:handler];
@@ -380,53 +398,65 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
     SPHomeCategory category = [self currentCategory];
     NSNumber *key = @(category);
     BOOL hasMore = self.hasMoreByCategory[key] ? self.hasMoreByCategory[key].boolValue : YES;
-    if (self.isLoadingMore || !hasMore) return;
+    if ([self.loadingMoreCategories containsObject:key] || !hasMore) return;
 
     NSInteger requestingPage = self.nextPageByCategory[key] ? self.nextPageByCategory[key].integerValue : 1;
-    self.isLoadingMore = YES;
+    NSUInteger token = self.categoryRequestToken;
+    [self.loadingMoreCategories addObject:key];
     [self updateFooterState];
 
     __weak typeof(self) weakSelf = self;
     [[SPMusicRepository shared] fetchHomeMoreSectionsForCategory:category
                                                             page:requestingPage
                                                       completion:^(NSArray<SPHomeSection *> *newSections, BOOL moreAvailable, NSError *error) {
-        if (!weakSelf) return;
-        weakSelf.isLoadingMore = NO;
-        if (error) {
-            [weakSelf updateFooterState];
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        [strongSelf.loadingMoreCategories removeObject:key];
+        if (strongSelf.categoryRequestToken != token) {
             return;
         }
-        weakSelf.nextPageByCategory[key] = @(requestingPage + 1);
-        weakSelf.hasMoreByCategory[key] = @(moreAvailable);
+        if (error) {
+            if ([strongSelf currentCategory] == category) {
+                [strongSelf updateFooterState];
+            }
+            return;
+        }
+        strongSelf.nextPageByCategory[key] = @(requestingPage + 1);
+        strongSelf.hasMoreByCategory[key] = @(moreAvailable);
 
         if (newSections.count > 0) {
-            NSMutableArray<SPHomeSection *> *merged = [NSMutableArray arrayWithArray:weakSelf.sectionsByCategory[key] ?: @[]];
+            NSMutableArray<SPHomeSection *> *merged = [NSMutableArray arrayWithArray:strongSelf.sectionsByCategory[key] ?: @[]];
             [merged addObjectsFromArray:newSections];
-            weakSelf.sectionsByCategory[key] = merged;
+            strongSelf.sectionsByCategory[key] = merged;
 
-            if ([weakSelf currentCategory] == category) {
-                NSInteger oldCount = weakSelf.visibleSections.count;
-                weakSelf.visibleSections = merged;
-                if (weakSelf.collectionView.numberOfSections == oldCount) {
+            if ([strongSelf currentCategory] == category) {
+                NSInteger oldCount = strongSelf.visibleSections.count;
+                strongSelf.visibleSections = merged;
+                if (strongSelf.collectionView.numberOfSections == oldCount &&
+                    (NSInteger)merged.count == oldCount + (NSInteger)newSections.count) {
                     NSIndexSet *added = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(oldCount, newSections.count)];
                     [UIView performWithoutAnimation:^{
-                        [weakSelf.collectionView performBatchUpdates:^{
-                            [weakSelf.collectionView insertSections:added];
+                        [strongSelf.collectionView performBatchUpdates:^{
+                            [strongSelf.collectionView insertSections:added];
                         } completion:nil];
                     }];
                 } else {
-                    [weakSelf.collectionView reloadData];
+                    [strongSelf.collectionView reloadData];
                 }
             }
         }
-        [weakSelf updateFooterState];
+        if ([strongSelf currentCategory] == category) {
+            [strongSelf updateFooterState];
+        }
     }];
 }
 
 - (void)updateFooterState {
     SPHomeCategory category = [self currentCategory];
-    BOOL hasMore = self.hasMoreByCategory[@(category)] ? self.hasMoreByCategory[@(category)].boolValue : YES;
-    [self.footerView configureLoading:self.isLoadingMore
+    NSNumber *key = @(category);
+    BOOL hasMore = self.hasMoreByCategory[key] ? self.hasMoreByCategory[key].boolValue : YES;
+    BOOL loading = [self.loadingMoreCategories containsObject:key];
+    [self.footerView configureLoading:loading
                               hasMore:hasMore
                             isPodcast:(category == SPHomeCategoryPodcast)
                               visible:(self.visibleSections.count > 0)];
@@ -462,8 +492,16 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
     }
 }
 
-- (void)updateAmbientColorFromTrack:(SPTrack *)track {
-    if (!track.coverURL.length) return;
+- (void)updateAmbientColorFromTrack:(nullable SPTrack *)track {
+    if (!track || !track.coverURL.length) {
+        UIColor *ambientTop = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *traitCollection) {
+            return (traitCollection.userInterfaceStyle == UIUserInterfaceStyleLight)
+                ? [UIColor colorWithRed:0.12 green:0.84 blue:0.38 alpha:0.10]
+                : [UIColor sp_colorWithHex:0x2A1F4A];
+        }];
+        [self.ambientGradient setColors:@[ambientTop, SPTheme.backgroundColor] animated:YES];
+        return;
+    }
     NSURL *url = [NSURL URLWithString:track.coverURL];
     if (!url) return;
     __weak typeof(self) weakSelf = self;
@@ -496,39 +534,6 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
     [self updateFooterState];
 }
 
-- (void)warmupPlayerIfNeededWithSections:(NSArray<SPHomeSection *> *)sections {
-    if ([SPPlayerService shared].currentTrack != nil) return;
-    SPPlaylist *firstEmptyPlaylist = nil;
-    for (SPHomeSection *section in sections) {
-        for (id<SPMediaItem> item in section.items) {
-            if ([item isKindOfClass:SPPlaylist.class]) {
-                SPPlaylist *playlist = (SPPlaylist *)item;
-                if (playlist.tracks.count > 0) {
-                    [[SPPlayerService shared] prepareTracks:playlist.tracks startIndex:0 contextTitle:playlist.name];
-                    return;
-                }
-                if (!firstEmptyPlaylist && playlist.identifier.length > 0) {
-                    firstEmptyPlaylist = playlist;
-                }
-            } else if ([item isKindOfClass:SPAlbum.class]) {
-                SPAlbum *album = (SPAlbum *)item;
-                if (album.tracks.count > 0) {
-                    [[SPPlayerService shared] prepareTracks:album.tracks startIndex:0 contextTitle:album.name];
-                    return;
-                }
-            }
-        }
-    }
-    if (firstEmptyPlaylist) {
-        [[SPMusicRepository shared] fetchPlaylistWithId:firstEmptyPlaylist.identifier completion:^(SPPlaylist *pl, NSError *err) {
-            if ([SPPlayerService shared].currentTrack != nil) return;
-            if (!err && pl.tracks.count > 0) {
-                [[SPPlayerService shared] prepareTracks:pl.tracks startIndex:0 contextTitle:pl.name];
-            }
-        }];
-    }
-}
-
 #pragma mark - Actions
 
 - (void)updateChipStyles {
@@ -556,11 +561,11 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
     if (self.selectedChipIndex == sender.tag) return;
     self.selectedChipIndex = sender.tag;
     [self updateChipStyles];
-    self.isLoadingMore = NO;
 
     SPHomeCategory category = [self currentCategory];
     NSArray<SPHomeSection *> *cached = self.sectionsByCategory[@(category)];
     if (cached.count > 0) {
+        self.categoryRequestToken += 1;
         [self.skeletonView dismissAnimated:YES];
         self.skeletonView = nil;
         [self applyCurrentCategorySectionsAndScrollTop:YES];
@@ -573,14 +578,14 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
     }
 }
 
-- (void)bellTapped {
+- (void)roamTapped {
     [SPHaptics light];
-    [self.navigationController pushViewController:[SPActivityViewController new] animated:YES];
+    [self.navigationController pushViewController:[SPMoodRoamViewController new] animated:YES];
 }
 
-- (void)historyTapped {
+- (void)statsTapped {
     [SPHaptics light];
-    [self.navigationController pushViewController:[SPHistoryViewController new] animated:YES];
+    [self.navigationController pushViewController:[SPListeningStatsViewController new] animated:YES];
 }
 
 - (void)settingsTapped {
@@ -630,9 +635,19 @@ static NSString * const SPHomeGlobalFooterKind = @"SPHomeGlobalFooter";
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    // 顶部氛围渐变随滚动做柔和视差淡出，顶栏细线随滚动浮现
+    CGFloat offsetY = MAX(0.0, scrollView.contentOffset.y);
+    self.topBarHairline.alpha = MIN(MAX(offsetY / 20.0, 0.0), 1.0);
+    CGFloat fade = MIN(MAX(1.0 - offsetY / 180.0, 0.0), 1.0);
+    self.ambientGradient.alpha = fade;
+    if (!UIAccessibilityIsReduceMotionEnabled()) {
+        self.ambientGradient.transform = CGAffineTransformMakeTranslation(0, -MIN(offsetY, 180.0) * 0.35);
+    }
+
     SPHomeCategory category = [self currentCategory];
-    BOOL hasMore = self.hasMoreByCategory[@(category)] ? self.hasMoreByCategory[@(category)].boolValue : YES;
-    if (self.isLoadingMore || !hasMore || self.visibleSections.count == 0) {
+    NSNumber *key = @(category);
+    BOOL hasMore = self.hasMoreByCategory[key] ? self.hasMoreByCategory[key].boolValue : YES;
+    if ([self.loadingMoreCategories containsObject:key] || !hasMore || self.visibleSections.count == 0) {
         return;
     }
     CGFloat height = CGRectGetHeight(scrollView.bounds);

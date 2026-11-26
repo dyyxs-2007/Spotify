@@ -22,6 +22,10 @@
     return [[self sp_colorCache] objectForKey:cacheKey];
 }
 
++ (void)sp_clearDominantColorCache {
+    [[self sp_colorCache] removeAllObjects];
+}
+
 + (void)sp_extractDominantColorForImage:(UIImage *)image
                                cacheKey:(NSString *)cacheKey
                              completion:(void (^)(UIColor *))completion {

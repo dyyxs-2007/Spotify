@@ -19,6 +19,7 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
 @property (nonatomic, strong) SPLRUCache<NSString *, SPPlaylist *> *playlistCache;
 @property (nonatomic, strong) SPLRUCache<NSString *, SPAlbum *> *albumCache;
 @property (nonatomic, strong) SPLRUCache<NSString *, NSArray<SPTrack *> *> *artistTracksCache;
+@property (nonatomic, strong) SPLRUCache<NSString *, SPArtist *> *artistProfileCache;
 @property (nonatomic, strong) SPLRUCache<NSString *, SPSearchResult *> *searchCache;
 @property (nonatomic, strong) SPLRUCache<NSString *, SPLyricDocument *> *lyricsCache;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, NSArray<SPHomeSection *> *> *cachedHomeSectionsByCategory;
@@ -27,6 +28,10 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
 @end
 
 @implementation SPMusicRepository
+
+@synthesize source = _source;
+@synthesize cachedCategories = _cachedCategories;
+@synthesize cachedLibraryItems = _cachedLibraryItems;
 
 + (instancetype)shared {
     static SPMusicRepository *instance;
@@ -40,6 +45,7 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
         _playlistCache = [[SPLRUCache alloc] initWithMaxCount:50];
         _albumCache = [[SPLRUCache alloc] initWithMaxCount:50];
         _artistTracksCache = [[SPLRUCache alloc] initWithMaxCount:40];
+        _artistProfileCache = [[SPLRUCache alloc] initWithMaxCount:40];
         _searchCache = [[SPLRUCache alloc] initWithMaxCount:60];
         _lyricsCache = [[SPLRUCache alloc] initWithMaxCount:60];
         _cachedHomeSectionsByCategory = [NSMutableDictionary dictionary];
@@ -47,9 +53,17 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
     return self;
 }
 
+- (id<SPMusicDataSource>)source {
+    @synchronized (self) {
+        return _source;
+    }
+}
+
 - (void)setSource:(id<SPMusicDataSource>)source {
-    if (_source == source) return;
-    _source = source;
+    @synchronized (self) {
+        if (_source == source) return;
+        _source = source;
+    }
     [self clearMetadataCaches];
     [[SPAudioCacheManager shared] clearMemoryCaches];
     SP_MAIN_WORK(^{
@@ -57,14 +71,48 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
     });
 }
 
+- (NSArray<SPSearchCategory *> *)cachedCategories {
+    @synchronized (self) {
+        return _cachedCategories;
+    }
+}
+
+- (void)setCachedCategories:(NSArray<SPSearchCategory *> *)cachedCategories {
+    @synchronized (self) {
+        _cachedCategories = [cachedCategories copy];
+    }
+}
+
+- (NSArray<id<SPMediaItem>> *)cachedLibraryItems {
+    @synchronized (self) {
+        return _cachedLibraryItems;
+    }
+}
+
+- (void)setCachedLibraryItems:(NSArray<id<SPMediaItem>> *)cachedLibraryItems {
+    @synchronized (self) {
+        _cachedLibraryItems = [cachedLibraryItems copy];
+    }
+}
+
 - (NSString *)sourceName { return self.source.sourceName; }
 
 - (NSUInteger)cacheHitCount {
-    return self.playlistCache.hitCount + self.albumCache.hitCount + self.artistTracksCache.hitCount + self.searchCache.hitCount + self.lyricsCache.hitCount;
+    return self.playlistCache.hitCount
+         + self.albumCache.hitCount
+         + self.artistTracksCache.hitCount
+         + self.artistProfileCache.hitCount
+         + self.searchCache.hitCount
+         + self.lyricsCache.hitCount;
 }
 
 - (NSUInteger)cachedEntryCount {
-    return self.playlistCache.count + self.albumCache.count + self.artistTracksCache.count + self.searchCache.count + self.lyricsCache.count;
+    return self.playlistCache.count
+         + self.albumCache.count
+         + self.artistTracksCache.count
+         + self.artistProfileCache.count
+         + self.searchCache.count
+         + self.lyricsCache.count;
 }
 
 - (SPPlaylist *)cachedPlaylistForId:(NSString *)playlistId {
@@ -81,9 +129,12 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
     [self.playlistCache removeAllObjects];
     [self.albumCache removeAllObjects];
     [self.artistTracksCache removeAllObjects];
+    [self.artistProfileCache removeAllObjects];
     [self.searchCache removeAllObjects];
     [self.lyricsCache removeAllObjects];
-    [self.cachedHomeSectionsByCategory removeAllObjects];
+    @synchronized (self.cachedHomeSectionsByCategory) {
+        [self.cachedHomeSectionsByCategory removeAllObjects];
+    }
     self.cachedCategories = nil;
     self.cachedLibraryItems = nil;
 }
@@ -96,7 +147,10 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
 
 - (void)fetchHomeSectionsForCategory:(SPHomeCategory)category
                           completion:(void (^)(NSArray<SPHomeSection *> *, NSError *))completion {
-    NSArray<SPHomeSection *> *cached = self.cachedHomeSectionsByCategory[@(category)];
+    NSArray<SPHomeSection *> *cached = nil;
+    @synchronized (self.cachedHomeSectionsByCategory) {
+        cached = self.cachedHomeSectionsByCategory[@(category)];
+    }
     if (cached.count > 0) {
         SP_MAIN_WORK(^{ if (completion) completion(cached, nil); });
         return;
@@ -116,7 +170,9 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
         SP_MAIN_WORK(^{
             if (weakSelf.source != currentSource) return;
             if (!error && sections.count > 0) {
-                weakSelf.cachedHomeSectionsByCategory[@(category)] = sections;
+                @synchronized (weakSelf.cachedHomeSectionsByCategory) {
+                    weakSelf.cachedHomeSectionsByCategory[@(category)] = sections;
+                }
                 [weakSelf warmCachesFromHomeSections:sections];
             }
             if (completion) completion(sections, error);
@@ -246,7 +302,8 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
                         completion:(void (^)(SPArtist * _Nullable, NSArray<SPTrack *> * _Nullable, NSError * _Nullable))completion {
     NSArray<SPTrack *> *cached = [self.artistTracksCache objectForKey:artistId];
     if (cached.count > 0) {
-        SP_MAIN_WORK(^{ if (completion) completion(nil, cached, nil); });
+        SPArtist *cachedArtist = [self.artistProfileCache objectForKey:artistId];
+        SP_MAIN_WORK(^{ if (completion) completion(cachedArtist, cached, nil); });
         return;
     }
     id<SPMusicDataSource> currentSource = self.source;
@@ -256,6 +313,9 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
             if (weakSelf.source != currentSource) return;
             if (!error && tracks.count > 0) {
                 [weakSelf.artistTracksCache setObject:tracks forKey:artistId];
+                if (artist) {
+                    [weakSelf.artistProfileCache setObject:artist forKey:artistId];
+                }
             }
             if (completion) completion(artist, tracks, error);
         });
@@ -288,6 +348,7 @@ NSNotificationName const SPMusicSourceDidChangeNotification = @"com.dyyxs.spotif
         SP_MAIN_WORK(^{ if (completion) completion(url, error); });
     }];
 }
+//
 
 - (void)fetchLyricsForTrack:(SPTrack *)track completion:(void (^)(SPLyricDocument *, NSError *))completion {
     NSString *trackId = track.identifier;

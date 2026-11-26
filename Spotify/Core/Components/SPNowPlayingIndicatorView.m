@@ -18,9 +18,10 @@
         CGFloat xOffsets[] = { 0.0, 4.5, 9.0 };
         CGFloat idleHeights[] = { 4.0, 8.0, 5.0 };
 
+        CGColorRef barColor = [SPTheme.accentColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
         for (int i = 0; i < 3; i++) {
             CALayer *bar = [CALayer layer];
-            bar.backgroundColor = SPTheme.accentColor.CGColor;
+            bar.backgroundColor = barColor;
             bar.cornerRadius = 1.25;
             bar.anchorPoint = CGPointMake(0.5, 1.0);
             bar.bounds = CGRectMake(0, 0, 2.5, idleHeights[i]);
@@ -39,9 +40,27 @@
 
 - (void)didMoveToWindow {
     [super didMoveToWindow];
+    [self updateBarColors];
     if (self.window && self.animating) {
         [self startAnimations];
     }
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [super traitCollectionDidChange:previousTraitCollection];
+    if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection]) {
+        [self updateBarColors];
+    }
+}
+
+- (void)updateBarColors {
+    CGColorRef barColor = [SPTheme.accentColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    for (CALayer *bar in self.bars) {
+        bar.backgroundColor = barColor;
+    }
+    [CATransaction commit];
 }
 
 - (void)setAnimating:(BOOL)animating {

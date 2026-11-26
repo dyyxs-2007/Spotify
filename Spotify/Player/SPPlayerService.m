@@ -10,7 +10,10 @@
 #import "SPAudioCacheManager.h"
 #import "SPSystemMediaController.h"
 #import "SPHistoryStore.h"
+#import "SPListeningStatsStore.h"
 #import "SPToast.h"
+
+NSNotificationName const SPPlayerSleepTimerDidUpdateNotification = @"com.dyyxs.spotify.player.sleepTimerUpdated";
 
 static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled_v1";
 
@@ -23,6 +26,8 @@ static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled
 @property (nonatomic, assign) SPPlaybackState state;
 @property (nonatomic, copy, nullable) NSString *contextTitle;
 @property (nonatomic, assign) NSUInteger loadTicket;
+@property (nonatomic, assign) NSUInteger playbackSessionId;
+@property (nonatomic, assign) BOOL currentSessionRecordedPlay;
 @property (nonatomic, assign) NSUInteger consecutiveFailures;
 @property (nonatomic, assign) BOOL currentTrackLoadedInEngine;
 @property (nonatomic, assign) BOOL lastPlaybackUsedCache;
@@ -30,6 +35,9 @@ static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled
 @property (nonatomic, assign) NSTimeInterval lastSyncedDuration;
 @property (nonatomic, assign) NSTimeInterval lastInfoUpdateTimestamp;
 @property (nonatomic, assign) UIBackgroundTaskIdentifier transitionBackgroundTaskId;
+@property (nonatomic, strong, nullable) NSTimer *sleepTimer;
+@property (nonatomic, assign) NSTimeInterval sleepTimerRemaining;
+@property (nonatomic, strong, nullable) NSDate *sleepTimerDeadline;
 @end
 
 @implementation SPPlayerService
@@ -65,9 +73,15 @@ static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled
 
 #pragma mark - Observers
 
+- (void)compactObservers {
+    // Foundation 经典陷阱：ARC 弱引用置空不会置位 NSPointerArray 的 needsCompaction，需先追加 NULL 再 compact
+    [self.observers addPointer:NULL];
+    [self.observers compact];
+}
+
 - (void)addObserver:(id<SPPlayerObserver>)observer {
     if (!observer) return;
-    [self.observers compact];
+    [self compactObservers];
     for (id<SPPlayerObserver> existing in self.observers) {
         if (existing == observer) return;
     }
@@ -82,11 +96,11 @@ static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled
             break;
         }
     }
-    [self.observers compact];
+    [self compactObservers];
 }
 
 - (void)notify:(SEL)selector {
-    [self.observers compact];
+    [self compactObservers];
     NSArray *snapshot = [self.observers allObjects];
     for (id<SPPlayerObserver> observer in snapshot) {
         if ([observer respondsToSelector:selector]) {
@@ -136,6 +150,23 @@ static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled
 
 - (void)playTracks:(NSArray<SPTrack *> *)tracks startIndex:(NSUInteger)index contextTitle:(NSString *)contextTitle {
     if (index >= tracks.count) return;
+    SPTrack *requested = tracks[index];
+    SPTrack *current = self.currentTrack;
+    BOOL isSameActiveTrack = (current && requested.identifier.length > 0 &&
+                              [requested.identifier isEqualToString:current.identifier] &&
+                              self.currentTrackLoadedInEngine &&
+                              self.state != SPPlaybackStateFailed &&
+                              (self.duration <= 0 || self.currentTime < self.duration - 2.0));
+    if (isSameActiveTrack) {
+        self.consecutiveFailures = 0;
+        self.contextTitle = contextTitle;
+        [self.queue replaceWithTracks:tracks startIndex:index];
+        [self notify:@selector(playerDidChangeQueue:)];
+        if (!self.isPlaying) {
+            [self play];
+        }
+        return;
+    }
     self.consecutiveFailures = 0;
     self.pendingSeekTime = -1;
     self.contextTitle = contextTitle;
@@ -182,6 +213,7 @@ static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled
     if (!self.currentTrack) return;
     if (!self.currentTrackLoadedInEngine) {
         self.loadTicket += 1;
+        [self.engine pause];
         [self updateState:SPPlaybackStatePaused];
         return;
     }
@@ -248,16 +280,109 @@ static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled
     [self notify:@selector(playerDidChangeMode:)];
 }
 
+#pragma mark - Sleep Timer & Reset
+
+- (BOOL)isSleepTimerActive {
+    return (self.sleepTimer != nil && self.sleepTimerRemaining > 0);
+}
+
+- (void)postSleepTimerNotification {
+    dispatch_block_t block = ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:SPPlayerSleepTimerDidUpdateNotification object:self];
+    };
+    if (NSThread.isMainThread) block(); else dispatch_async(dispatch_get_main_queue(), block);
+}
+
+- (void)setSleepTimerMinutes:(NSInteger)minutes {
+    [self.sleepTimer invalidate];
+    self.sleepTimer = nil;
+    self.sleepTimerDeadline = nil;
+
+    if (minutes <= 0) {
+        self.sleepTimerRemaining = 0;
+        [self postSleepTimerNotification];
+        return;
+    }
+
+    NSTimeInterval duration = (NSTimeInterval)minutes * 60.0;
+    self.sleepTimerDeadline = [NSDate dateWithTimeIntervalSinceNow:duration];
+    self.sleepTimerRemaining = duration;
+    [self postSleepTimerNotification];
+
+    __weak typeof(self) weakSelf = self;
+    NSTimer *timer = [NSTimer timerWithTimeInterval:1.0 repeats:YES block:^(NSTimer *t) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            [t invalidate];
+            return;
+        }
+        NSTimeInterval remaining = strongSelf.sleepTimerDeadline
+            ? MAX(0.0, [strongSelf.sleepTimerDeadline timeIntervalSinceNow])
+            : 0.0;
+        strongSelf.sleepTimerRemaining = remaining;
+        if (remaining <= 0.0) {
+            [t invalidate];
+            strongSelf.sleepTimer = nil;
+            strongSelf.sleepTimerDeadline = nil;
+            [strongSelf pause];
+            [strongSelf postSleepTimerNotification];
+            [SPToast showMessage:@"睡眠定时已到，已为你暂停播放"];
+        } else {
+            [strongSelf postSleepTimerNotification];
+        }
+    }];
+    [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+    self.sleepTimer = timer;
+}
+
+- (void)resetToEmptyState {
+    self.loadTicket += 1;
+    self.playbackSessionId += 1;
+    self.currentSessionRecordedPlay = NO;
+    self.consecutiveFailures = 0;
+    self.pendingSeekTime = -1;
+    self.currentTrackLoadedInEngine = NO;
+    self.lastSyncedDuration = 0;
+    self.lastPlaybackUsedCache = NO;
+    self.contextTitle = nil;
+
+    [[SPListeningStatsStore shared] recordPlaybackProgressForTrack:nil isPlaying:NO];
+    [self setSleepTimerMinutes:0];
+    [self endTransitionBackgroundTask];
+    [self.engine stop];
+    [self.queue clear];
+    self.state = SPPlaybackStateIdle;
+    [self.systemController clearNowPlayingInfo];
+
+    [self notify:@selector(playerDidChangeTrack:)];
+    [self notify:@selector(playerDidChangeQueue:)];
+    [self notify:@selector(playerDidUpdateProgress:)];
+    [self notify:@selector(playerDidChangeState:)];
+}
+
 #pragma mark - Track Loading & Preload
+
+- (void)recordCurrentSessionPlayIfNeeded {
+    if (self.currentSessionRecordedPlay || !self.currentTrackLoadedInEngine || !self.currentTrack) return;
+    self.currentSessionRecordedPlay = YES;
+    [[SPListeningStatsStore shared] recordTrackPlay:self.currentTrack sessionId:self.playbackSessionId];
+}
 
 - (void)startCurrentTrackWithAutoPlay:(BOOL)autoPlay {
     self.loadTicket += 1;
+    self.playbackSessionId += 1;
+    self.currentSessionRecordedPlay = NO;
     NSUInteger ticket = self.loadTicket;
     SPTrack *track = self.currentTrack;
 
     self.currentTrackLoadedInEngine = NO;
     self.lastSyncedDuration = 0;
     self.lastPlaybackUsedCache = NO;
+    [[SPListeningStatsStore shared] recordPlaybackProgressForTrack:nil isPlaying:NO];
+    // 切歌时立刻暂停上一首音频，避免新曲 URL 解析期间旧歌继续出声或点暂停后“假暂停”
+    if (self.engine.state == SPPlaybackStatePlaying || self.engine.state == SPPlaybackStateLoading) {
+        [self.engine pause];
+    }
 
     [self notify:@selector(playerDidChangeTrack:)];
     [self notify:@selector(playerDidUpdateProgress:)];
@@ -287,7 +412,6 @@ static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled
             [weakSelf handlePlaybackFailureWithMessage:error.localizedDescription ?: @"暂无播放地址"];
             return;
         }
-        weakSelf.consecutiveFailures = 0;
         weakSelf.currentTrackLoadedInEngine = YES;
         weakSelf.lastPlaybackUsedCache = isCacheHit;
         [[SPHistoryStore shared] recordTrack:track];
@@ -346,9 +470,15 @@ static NSString * const SPPlayerPreloadEnabledDefaultsKey = @"sp_preload_enabled
 - (void)updateState:(SPPlaybackState)state {
     if (self.state == state) return;
     self.state = state;
+    if (state == SPPlaybackStatePlaying) {
+        // 只有真正出声播放时才清零连续失败计数并计入当前播放会话，防止坏缓存/缓冲中断反复计数
+        self.consecutiveFailures = 0;
+        [self recordCurrentSessionPlayIfNeeded];
+    }
     if (state != SPPlaybackStateLoading) {
         [self endTransitionBackgroundTask];
     }
+    [[SPListeningStatsStore shared] recordPlaybackProgressForTrack:self.currentTrack isPlaying:(state == SPPlaybackStatePlaying)];
     [self notify:@selector(playerDidChangeState:)];
     [self syncNowPlayingInfoForce:YES];
 }
@@ -377,6 +507,10 @@ didUpdateCurrentTime:(NSTimeInterval)currentTime
     if (duration > 0 && self.currentTrack && fabs(self.currentTrack.duration - duration) > 1.0) {
         self.currentTrack.duration = duration;
     }
+    if (self.state == SPPlaybackStatePlaying && currentTime > 0.05) {
+        [self recordCurrentSessionPlayIfNeeded];
+    }
+    [[SPListeningStatsStore shared] recordPlaybackProgressForTrack:self.currentTrack isPlaying:(self.state == SPPlaybackStatePlaying)];
     [self notify:@selector(playerDidUpdateProgress:)];
     [self syncNowPlayingInfoForce:NO];
 }
@@ -389,15 +523,22 @@ didUpdateCurrentTime:(NSTimeInterval)currentTime
         [self startCurrentTrackWithAutoPlay:YES];
         [self notify:@selector(playerDidChangeQueue:)];
     } else {
+        NSUInteger ticket = self.loadTicket;
         __weak typeof(self) weakSelf = self;
         [self.engine pause];
+        [[SPListeningStatsStore shared] recordPlaybackProgressForTrack:nil isPlaying:NO];
+        self.playbackSessionId += 1;
+        self.currentSessionRecordedPlay = NO;
         [self.engine seekToTime:0 completion:^(BOOL finished) {
-            [weakSelf updateState:SPPlaybackStatePaused];
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf || strongSelf.loadTicket != ticket) return;
+            [strongSelf updateState:SPPlaybackStatePaused];
         }];
     }
 }
 
 - (void)audioEngine:(id<SPAudioEngine>)engine didFailWithError:(NSError *)error {
+    [[SPAudioCacheManager shared] invalidateCacheForTrack:self.currentTrack];
     [self handlePlaybackFailureWithMessage:error.localizedDescription ?: @"音频播放失败"];
 }
 

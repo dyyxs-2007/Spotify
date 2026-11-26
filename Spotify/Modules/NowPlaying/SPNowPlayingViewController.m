@@ -20,11 +20,26 @@
 #import "SPHaptics.h"
 #import "SPToast.h"
 
+@interface SPPlayerScrollView : UIScrollView
+@end
+
+@implementation SPPlayerScrollView
+
+- (BOOL)touchesShouldCancelInContentView:(UIView *)view {
+    if ([view isKindOfClass:UISlider.class]) {
+        return NO;
+    }
+    return [super touchesShouldCancelInContentView:view];
+}
+
+@end
+
 #pragma mark - Track Card Slot (Cover + Title + Artist + Like)
 
 @interface SPNowPlayingTrackCardView : UIView
 @property (nonatomic, strong) UIView *coverShadowContainer;
 @property (nonatomic, strong) UIImageView *coverView;
+@property (nonatomic, strong) UIStackView *trackMetaStack;
 @property (nonatomic, strong) UILabel *trackTitleLabel;
 @property (nonatomic, strong) UILabel *artistLabel;
 @property (nonatomic, strong) SPScaleButton *likeButton;
@@ -65,6 +80,7 @@
         UIStackView *trackMetaStack = [[UIStackView alloc] initWithArrangedSubviews:@[_trackTitleLabel, _artistLabel]];
         trackMetaStack.axis = UILayoutConstraintAxisVertical;
         trackMetaStack.spacing = 4;
+        _trackMetaStack = trackMetaStack;
         [self addSubview:trackMetaStack];
 
         _likeButton = [SPScaleButton buttonWithType:UIButtonTypeSystem];
@@ -115,7 +131,7 @@
     if (!track) {
         self.trackTitleLabel.text = @"";
         self.artistLabel.text = @"";
-        self.coverView.image = nil;
+        [self.coverView sp_cancelCoverLoadAndReset];
         [self applyLiked:NO animated:NO];
         return;
     }
@@ -154,7 +170,14 @@
 
 @interface SPNowPlayingViewController () <SPPlayerObserver, UIGestureRecognizerDelegate, UIScrollViewDelegate>
 @property (nonatomic, strong) SPGradientView *backgroundGradient;
+@property (nonatomic, strong) UIView *topBar;
+@property (nonatomic, strong) UILabel *contextSubLabel;
 @property (nonatomic, strong) UILabel *contextTitleLabel;
+@property (nonatomic, strong) SPScaleButton *moreButton;
+@property (nonatomic, strong) UIView *emptyStateView;
+@property (nonatomic, strong) UIView *topBarHairline;
+@property (nonatomic, strong) SPGradientView *scrollTopFadeView;
+@property (nonatomic, assign) BOOL topBarShowingTrackInfo;
 @property (nonatomic, strong) UIScrollView *mainScrollView;
 @property (nonatomic, strong) UIView *scrollContentView;
 @property (nonatomic, strong) UIView *playerStageView;
@@ -165,15 +188,17 @@
 @property (nonatomic, strong) SPNowPlayingTrackCardView *centerCard;
 @property (nonatomic, strong) SPNowPlayingTrackCardView *nextCard;
 
-@property (nonatomic, strong) UISlider *progressSlider;
+@property (nonatomic, strong) SPProgressSlider *progressSlider;
 @property (nonatomic, strong) UIView *bufferTrackView;
 @property (nonatomic, strong) UILabel *currentTimeLabel;
 @property (nonatomic, strong) UILabel *durationLabel;
 @property (nonatomic, strong) SPScaleButton *shuffleButton;
+@property (nonatomic, strong) UIView *shuffleDot;
 @property (nonatomic, strong) SPScaleButton *prevButton;
 @property (nonatomic, strong) SPScaleButton *playPauseButton;
 @property (nonatomic, strong) SPScaleButton *nextButton;
 @property (nonatomic, strong) SPScaleButton *repeatButton;
+@property (nonatomic, strong) UIView *repeatDot;
 @property (nonatomic, strong) SPScaleButton *lyricsHintButton;
 @property (nonatomic, strong) SPLyricsCardView *lyricsCardView;
 
@@ -183,6 +208,7 @@
 @property (nonatomic, strong, nullable) UIColor *currentThemeColor;
 @property (nonatomic, strong, nullable) UIColor *nextThemeColor;
 @property (nonatomic, copy, nullable) NSString *renderedTrackId;
+@property (nonatomic, copy, nullable) NSString *pagerDragStartTrackId;
 
 @property (nonatomic, assign) BOOL ignorePagerScrollEvents;
 @property (nonatomic, assign) CGFloat lastComputedPagerHeight;
@@ -190,6 +216,7 @@
 @property (nonatomic, assign) CGFloat lastPagerHeight;
 @property (nonatomic, assign) BOOL lastHasAdjacent;
 @property (nonatomic, assign) NSUInteger lyricRequestToken;
+@property (nonatomic, assign, readwrite) CGFloat dismissVelocityY;
 @end
 
 @implementation SPNowPlayingViewController
@@ -198,6 +225,10 @@
 
 - (UIImageView *)coverView {
     return self.centerCard.coverView;
+}
+
+- (UIView *)coverShadowContainer {
+    return self.centerCard.coverShadowContainer;
 }
 
 - (void)dealloc {
@@ -298,10 +329,12 @@
     CGRect converted = [self.progressSlider convertRect:trackRect toView:self.playerStageView];
     SPPlayerService *player = [SPPlayerService shared];
     CGFloat ratio = player.duration > 0 ? MIN(MAX(player.bufferedTime / player.duration, 0.0), 1.0) : 0.0;
+    CGFloat h = MAX(CGRectGetHeight(converted), 3.0);
     self.bufferTrackView.frame = CGRectMake(CGRectGetMinX(converted),
-                                            CGRectGetMidY(converted) - 1.5,
+                                            CGRectGetMidY(converted) - h * 0.5,
                                             CGRectGetWidth(converted) * ratio,
-                                            3.0);
+                                            h);
+    self.bufferTrackView.layer.cornerRadius = h * 0.5;
 }
 
 - (void)setupViews {
@@ -309,38 +342,65 @@
     _backgroundGradient.colors = @[[UIColor sp_colorWithHex:0x28282D], [UIColor sp_colorWithHex:0x121214]];
     [self.view addSubview:_backgroundGradient];
 
+    // 顶部提示可下拉的精致手势条（Grabber）
+    UIView *grabber = [UIView new];
+    grabber.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.28];
+    grabber.layer.cornerRadius = 2.25;
+    grabber.layer.cornerCurve = kCACornerCurveContinuous;
+    grabber.userInteractionEnabled = NO;
+    [self.view addSubview:grabber];
+
     // 顶部固定导航栏
     SPScaleButton *dismissBtn = [self iconButton:@"chevron.down" size:20 weight:UIImageSymbolWeightSemibold action:@selector(dismissTapped)];
-    SPScaleButton *moreBtn = [self iconButton:@"ellipsis" size:20 weight:UIImageSymbolWeightMedium action:@selector(moreTapped)];
+    _moreButton = [self iconButton:@"ellipsis" size:20 weight:UIImageSymbolWeightMedium action:@selector(moreTapped)];
 
-    UILabel *contextSubLabel = [UILabel new];
-    contextSubLabel.text = @"正在播放自";
-    contextSubLabel.font = [SPTheme fontOfSize:11 weight:UIFontWeightMedium];
-    contextSubLabel.textColor = [UIColor colorWithWhite:1 alpha:0.7];
-    contextSubLabel.textAlignment = NSTextAlignmentCenter;
+    _contextSubLabel = [UILabel new];
+    _contextSubLabel.text = @"正在播放自";
+    _contextSubLabel.font = [SPTheme fontOfSize:11 weight:UIFontWeightMedium];
+    _contextSubLabel.textColor = [UIColor colorWithWhite:1 alpha:0.7];
+    _contextSubLabel.textAlignment = NSTextAlignmentCenter;
 
     _contextTitleLabel = [UILabel new];
     _contextTitleLabel.font = [SPTheme fontOfSize:13 weight:UIFontWeightBold];
     _contextTitleLabel.textColor = UIColor.whiteColor;
     _contextTitleLabel.textAlignment = NSTextAlignmentCenter;
 
-    UIStackView *titleStack = [[UIStackView alloc] initWithArrangedSubviews:@[contextSubLabel, _contextTitleLabel]];
+    UIStackView *titleStack = [[UIStackView alloc] initWithArrangedSubviews:@[_contextSubLabel, _contextTitleLabel]];
     titleStack.axis = UILayoutConstraintAxisVertical;
     titleStack.spacing = 2;
 
     UIView *topBar = [UIView new];
+    _topBar = topBar;
     [topBar addSubview:dismissBtn];
     [topBar addSubview:titleStack];
-    [topBar addSubview:moreBtn];
+    [topBar addSubview:_moreButton];
     [self.view addSubview:topBar];
 
+    _topBarHairline = [UIView new];
+    _topBarHairline.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.10];
+    _topBarHairline.alpha = 0.0;
+    [topBar addSubview:_topBarHairline];
+
+    // 空白待机播放页（未播放 / 退出登录 / 首次登录 / 切换账号后默认态）
+    _emptyStateView = [self buildEmptyStateView];
+    _emptyStateView.hidden = YES;
+    [self.view addSubview:_emptyStateView];
+
     // 主垂直滚动容器（上方主控舞台 + 下方歌词卡片）
-    _mainScrollView = [UIScrollView new];
+    _mainScrollView = [SPPlayerScrollView new];
+    _mainScrollView.delaysContentTouches = NO;
     _mainScrollView.showsVerticalScrollIndicator = NO;
     _mainScrollView.alwaysBounceVertical = YES;
     _mainScrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     _mainScrollView.delegate = self;
     [self.view addSubview:_mainScrollView];
+
+    // 下滑至歌词区时柔化主滚动区顶缘，消除封面硬裁切感
+    _scrollTopFadeView = [SPGradientView new];
+    _scrollTopFadeView.userInteractionEnabled = NO;
+    _scrollTopFadeView.alpha = 0.0;
+    _scrollTopFadeView.locations = @[@0.0, @1.0];
+    [self.view addSubview:_scrollTopFadeView];
 
     _scrollContentView = [UIView new];
     [_mainScrollView addSubview:_scrollContentView];
@@ -374,7 +434,7 @@
     _bufferTrackView.userInteractionEnabled = NO;
     [_playerStageView addSubview:_bufferTrackView];
 
-    _progressSlider = [UISlider new];
+    _progressSlider = [SPProgressSlider new];
     _progressSlider.minimumTrackTintColor = UIColor.whiteColor;
     _progressSlider.maximumTrackTintColor = [UIColor colorWithWhite:1 alpha:0.16];
     [_progressSlider setThumbImage:[self circleThumbWithDiameter:12] forState:UIControlStateNormal];
@@ -413,6 +473,18 @@
     controlsStack.alignment = UIStackViewAlignmentCenter;
     [_playerStageView addSubview:controlsStack];
 
+    _shuffleDot = [UIView new];
+    _shuffleDot.backgroundColor = SPTheme.brandGreenColor;
+    _shuffleDot.layer.cornerRadius = 2.0;
+    _shuffleDot.hidden = YES;
+    [_playerStageView addSubview:_shuffleDot];
+
+    _repeatDot = [UIView new];
+    _repeatDot.backgroundColor = SPTheme.brandGreenColor;
+    _repeatDot.layer.cornerRadius = 2.0;
+    _repeatDot.hidden = YES;
+    [_playerStageView addSubview:_repeatDot];
+
     // 底部工具行（设备 · 歌词锚点胶囊 · 队列）
     SPScaleButton *deviceBtn = [self iconButton:@"hifispeaker" size:19 weight:UIImageSymbolWeightRegular action:@selector(deviceTapped)];
     SPScaleButton *queueBtn = [self iconButton:@"list.bullet" size:20 weight:UIImageSymbolWeightMedium action:@selector(queueTapped)];
@@ -422,7 +494,7 @@
     lyricsPillCfg.image = [SPTheme symbol:@"quote.bubble" size:13 weight:UIImageSymbolWeightSemibold];
     lyricsPillCfg.imagePadding = 5;
     lyricsPillCfg.baseForegroundColor = [UIColor colorWithWhite:1 alpha:0.86];
-    lyricsPillCfg.contentInsets = NSDirectionalEdgeInsetsMake(6, 12, 6, 12);
+    lyricsPillCfg.contentInsets = NSDirectionalEdgeInsetsMake(6, 10, 6, 12);
     lyricsPillCfg.titleTextAttributesTransformer = ^NSDictionary<NSAttributedStringKey, id> *(NSDictionary<NSAttributedStringKey, id> *incoming) {
         NSMutableDictionary *attrs = [incoming mutableCopy];
         attrs[NSFontAttributeName] = [SPTheme fontOfSize:12 weight:UIFontWeightSemibold];
@@ -456,8 +528,13 @@
     [_backgroundGradient mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.view);
     }];
-    [topBar mas_makeConstraints:^(MASConstraintMaker *make) {
+    [grabber mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(4);
+        make.centerX.equalTo(self.view);
+        make.size.mas_equalTo(CGSizeMake(38, 4.5));
+    }];
+    [topBar mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(12);
         make.left.right.equalTo(self.view);
         make.height.mas_equalTo(48);
     }];
@@ -466,20 +543,33 @@
         make.centerY.equalTo(topBar);
         make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
-    [moreBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+    [_moreButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(topBar).offset(-12);
         make.centerY.equalTo(topBar);
         make.size.mas_equalTo(CGSizeMake(44, 44));
     }];
     [titleStack mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(dismissBtn.mas_right).offset(8);
-        make.right.equalTo(moreBtn.mas_left).offset(-8);
+        make.right.equalTo(self.moreButton.mas_left).offset(-8);
         make.centerY.equalTo(topBar);
+    }];
+    [_topBarHairline mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.bottom.equalTo(topBar);
+        make.height.mas_equalTo(1.0 / UIScreen.mainScreen.scale);
+    }];
+    [_emptyStateView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(topBar.mas_bottom);
+        make.left.right.bottom.equalTo(self.view);
     }];
 
     [_mainScrollView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(topBar.mas_bottom);
         make.left.right.bottom.equalTo(self.view);
+    }];
+    [_scrollTopFadeView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(topBar.mas_bottom);
+        make.left.right.equalTo(self.view);
+        make.height.mas_equalTo(26);
     }];
     [_scrollContentView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.mainScrollView);
@@ -517,6 +607,16 @@
         make.left.equalTo(self.playerStageView).offset(24);
         make.right.equalTo(self.playerStageView).offset(-24);
     }];
+    [_shuffleDot mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.shuffleButton.mas_bottom).offset(-3);
+        make.centerX.equalTo(self.shuffleButton);
+        make.size.mas_equalTo(CGSizeMake(4, 4));
+    }];
+    [_repeatDot mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.repeatButton.mas_bottom).offset(-3);
+        make.centerX.equalTo(self.repeatButton);
+        make.size.mas_equalTo(CGSizeMake(4, 4));
+    }];
 
     [deviceBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(controlsStack.mas_bottom).offset(16);
@@ -542,6 +642,118 @@
         make.height.mas_equalTo(420);
         make.bottom.equalTo(self.scrollContentView).offset(-44);
     }];
+}
+
+- (UIView *)buildEmptyStateView {
+    UIView *container = [UIView new];
+
+    UIView *centerBox = [UIView new];
+    [container addSubview:centerBox];
+
+    // 暗夜磨砂唱片卡
+    UIView *discOuter = [UIView new];
+    discOuter.backgroundColor = [UIColor sp_colorWithHex:0x1C1D24];
+    discOuter.layer.cornerRadius = 28;
+    discOuter.layer.cornerCurve = kCACornerCurveContinuous;
+    discOuter.layer.borderWidth = 1.0 / UIScreen.mainScreen.scale;
+    discOuter.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.10].CGColor;
+    discOuter.layer.shadowColor = SPTheme.brandGreenColor.CGColor;
+    discOuter.layer.shadowOpacity = 0.16;
+    discOuter.layer.shadowRadius = 28;
+    discOuter.layer.shadowOffset = CGSizeZero;
+    discOuter.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, 216, 216) cornerRadius:28].CGPath;
+    [centerBox addSubview:discOuter];
+
+    UIView *discRing = [UIView new];
+    discRing.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.04];
+    discRing.layer.cornerRadius = 64;
+    discRing.layer.cornerCurve = kCACornerCurveCircular;
+    discRing.layer.borderWidth = 1.0;
+    discRing.layer.borderColor = [SPTheme.brandGreenColor colorWithAlphaComponent:0.26].CGColor;
+    [discOuter addSubview:discRing];
+
+    UIImageView *discIcon = [[UIImageView alloc] initWithImage:[SPTheme symbol:@"waveform" size:42 weight:UIImageSymbolWeightMedium]];
+    discIcon.tintColor = [UIColor colorWithWhite:1.0 alpha:0.86];
+    discIcon.contentMode = UIViewContentModeScaleAspectFit;
+    [discRing addSubview:discIcon];
+
+    UILabel *titleLabel = [UILabel new];
+    titleLabel.text = @"暂无正在播放的歌曲";
+    titleLabel.font = [SPTheme fontOfSize:22 weight:UIFontWeightBold];
+    titleLabel.textColor = UIColor.whiteColor;
+    titleLabel.textAlignment = NSTextAlignmentCenter;
+    [centerBox addSubview:titleLabel];
+
+    UILabel *subLabel = [UILabel new];
+    subLabel.text = @"首次进入、退出登录或切换账号后已自动静音待机\n从首页或我的音乐库挑选一首歌，随时开始畅听";
+    subLabel.font = [SPTheme fontOfSize:13.5 weight:UIFontWeightRegular];
+    subLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.62];
+    subLabel.textAlignment = NSTextAlignmentCenter;
+    subLabel.numberOfLines = 0;
+    subLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
+    [centerBox addSubview:subLabel];
+
+    SPScaleButton *homeBtn = [SPScaleButton buttonWithType:UIButtonTypeCustom];
+    homeBtn.backgroundColor = SPTheme.brandGreenColor;
+    homeBtn.layer.cornerRadius = 24;
+    homeBtn.layer.cornerCurve = kCACornerCurveContinuous;
+    [homeBtn setTitle:@"去首页发现音乐" forState:UIControlStateNormal];
+    [homeBtn setTitleColor:[UIColor sp_colorWithHex:0x0B0B0C] forState:UIControlStateNormal];
+    homeBtn.titleLabel.font = [SPTheme fontOfSize:15 weight:UIFontWeightBold];
+    [homeBtn addTarget:self action:@selector(emptyDiscoverTapped) forControlEvents:UIControlEventTouchUpInside];
+    [centerBox addSubview:homeBtn];
+
+    SPScaleButton *libBtn = [SPScaleButton buttonWithType:UIButtonTypeCustom];
+    libBtn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.08];
+    libBtn.layer.cornerRadius = 24;
+    libBtn.layer.cornerCurve = kCACornerCurveContinuous;
+    libBtn.layer.borderWidth = 1.0 / UIScreen.mainScreen.scale;
+    libBtn.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.18].CGColor;
+    [libBtn setTitle:@"前往我的音乐库" forState:UIControlStateNormal];
+    [libBtn setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
+    libBtn.titleLabel.font = [SPTheme fontOfSize:15 weight:UIFontWeightSemibold];
+    [libBtn addTarget:self action:@selector(emptyLibraryTapped) forControlEvents:UIControlEventTouchUpInside];
+    [centerBox addSubview:libBtn];
+
+    [centerBox mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(container).offset(-18);
+        make.left.equalTo(container).offset(32);
+        make.right.equalTo(container).offset(-32);
+    }];
+    [discOuter mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.centerX.equalTo(centerBox);
+        make.size.mas_equalTo(CGSizeMake(216, 216));
+    }];
+    [discRing mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.center.equalTo(discOuter);
+        make.size.mas_equalTo(CGSizeMake(128, 128));
+    }];
+    [discIcon mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.center.equalTo(discRing);
+        make.size.mas_equalTo(CGSizeMake(48, 48));
+    }];
+    [titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(discOuter.mas_bottom).offset(28);
+        make.left.right.equalTo(centerBox);
+    }];
+    [subLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(titleLabel.mas_bottom).offset(10);
+        make.left.right.equalTo(centerBox);
+    }];
+    [homeBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(subLabel.mas_bottom).offset(28);
+        make.centerX.equalTo(centerBox);
+        make.width.mas_equalTo(220);
+        make.height.mas_equalTo(48);
+    }];
+    [libBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(homeBtn.mas_bottom).offset(12);
+        make.centerX.equalTo(centerBox);
+        make.width.mas_equalTo(220);
+        make.height.mas_equalTo(48);
+        make.bottom.equalTo(centerBox);
+    }];
+    return container;
 }
 
 - (SPScaleButton *)iconButton:(NSString *)symbol size:(CGFloat)size weight:(UIImageSymbolWeight)weight action:(SEL)action {
@@ -575,21 +787,30 @@
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
-    CGPoint location = [gestureRecognizer locationInView:self.playerStageView];
-    CGRect sliderArea = CGRectInset(self.progressSlider.frame, -16, -16);
-    if (CGRectContainsPoint(sliderArea, location)) return NO;
+    if (self.isBeingPresented || self.isBeingDismissed) return NO;
+    if (!self.mainScrollView.hidden) {
+        CGPoint location = [gestureRecognizer locationInView:self.playerStageView];
+        CGRect sliderArea = CGRectInset(self.progressSlider.frame, -16, -18);
+        if (CGRectContainsPoint(sliderArea, location)) return NO;
+    }
 
     if (gestureRecognizer == self.dismissPan) {
-        if (self.mainScrollView.contentOffset.y > 2.0) return NO;
         CGPoint velocity = [self.dismissPan velocityInView:self.view];
-        return velocity.y > 0 && fabs(velocity.y) >= fabs(velocity.x);
+        if (!(velocity.y > 0 && fabs(velocity.y) >= fabs(velocity.x))) return NO;
+        CGPoint viewLoc = [self.dismissPan locationInView:self.view];
+        if (viewLoc.y <= CGRectGetMaxY(self.topBar.frame) + 8.0) {
+            return YES;
+        }
+        return self.mainScrollView.contentOffset.y <= 2.0;
     }
     return YES;
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
 shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
-    if (gestureRecognizer == self.dismissPan && otherGestureRecognizer == self.mainScrollView.panGestureRecognizer) {
+    if (gestureRecognizer == self.dismissPan &&
+        (otherGestureRecognizer == self.mainScrollView.panGestureRecognizer ||
+         otherGestureRecognizer == self.trackPagerScrollView.panGestureRecognizer)) {
         return YES;
     }
     return NO;
@@ -598,28 +819,56 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
 - (void)handlePan:(UIPanGestureRecognizer *)pan {
     CGPoint translation = [pan translationInView:self.view];
     CGPoint velocity = [pan velocityInView:self.view];
+    BOOL reduceMotion = UIAccessibilityIsReduceMotionEnabled();
 
     if (pan.state == UIGestureRecognizerStateChanged) {
         CGFloat dy = MAX(translation.y, 0);
-        CGFloat progress = MIN(dy / 320.0, 1.0);
-        CGFloat scale = 1.0 - 0.08 * progress;
-        self.view.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(scale, scale),
-                                                      CGAffineTransformMakeTranslation(0, dy));
-        self.view.alpha = 1.0 - 0.25 * progress;
+        CGFloat progress = MIN(dy / 300.0, 1.0);
+        // 缓出阻尼曲线，保留物理卡片跟随感且全程不淡出卡片本身（消除廉价半透明鬼影）
+        CGFloat eased = 1.0 - pow(1.0 - progress, 1.6);
+
+        self.view.clipsToBounds = YES;
+        self.view.layer.cornerCurve = kCACornerCurveContinuous;
+        self.view.layer.cornerRadius = reduceMotion ? 0.0 : (18.0 + 26.0 * eased);
+        self.view.layer.borderWidth = reduceMotion ? 0.0 : (1.0 / UIScreen.mainScreen.scale);
+        self.view.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.10].CGColor;
+        self.view.alpha = 1.0;
+
+        if (!reduceMotion) {
+            CGFloat scale = 1.0 - 0.065 * eased;
+            CGFloat dx = MAX(-24.0, MIN(24.0, translation.x * 0.14));
+            CGFloat ty = dy * 0.86;
+            self.view.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(scale, scale),
+                                                          CGAffineTransformMakeTranslation(dx, ty));
+        }
+        if (self.dismissDragProgressHandler) {
+            self.dismissDragProgressHandler(eased);
+        }
     } else if (pan.state == UIGestureRecognizerStateEnded || pan.state == UIGestureRecognizerStateCancelled) {
-        if (translation.y > 120 || velocity.y > 800) {
+        if (translation.y > 105 || velocity.y > 700) {
+            self.dismissVelocityY = MAX(0.0, velocity.y);
             [SPHaptics light];
             [self dismissViewControllerAnimated:YES completion:nil];
         } else {
-            [UIView animateWithDuration:0.35
+            self.dismissVelocityY = 0.0;
+            [UIView animateWithDuration:reduceMotion ? 0.16 : 0.34
                                   delay:0
-                 usingSpringWithDamping:0.85
-                  initialSpringVelocity:0
+                 usingSpringWithDamping:reduceMotion ? 1.0 : 0.88
+                  initialSpringVelocity:reduceMotion ? 0.0 : 0.2
                                 options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction
                              animations:^{
                 self.view.transform = CGAffineTransformIdentity;
+                self.view.layer.cornerRadius = 0.0;
+                self.view.layer.borderWidth = 0.0;
                 self.view.alpha = 1.0;
-            } completion:nil];
+                if (self.dismissDragProgressHandler) {
+                    self.dismissDragProgressHandler(0.0);
+                }
+            } completion:^(BOOL finished) {
+                if (CGAffineTransformIsIdentity(self.view.transform)) {
+                    self.view.clipsToBounds = NO;
+                }
+            }];
         }
     }
 }
@@ -638,6 +887,8 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
 - (void)applyGradientWithTopColor:(UIColor *)topColor animated:(BOOL)animated {
     UIColor *darkCanvas = [UIColor sp_colorWithHex:0x121214];
     [self.backgroundGradient setColors:@[topColor, [topColor sp_darkenedBy:0.55], darkCanvas] animated:animated];
+    UIColor *edgeTint = [topColor sp_darkenedBy:0.08];
+    [self.scrollTopFadeView setColors:@[[edgeTint colorWithAlphaComponent:0.95], [edgeTint colorWithAlphaComponent:0.0]] animated:animated];
     [self.lyricsCardView applyThemeColor:topColor animated:animated];
 }
 
@@ -645,7 +896,7 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
     [self reloadTrackAnimated:animated];
     [self reloadStateAnimated:animated];
     [self reloadProgress];
-    [self reloadModes];
+    [self reloadModesAnimated:animated];
 }
 
 - (void)configureAdjacentCards {
@@ -675,11 +926,39 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
     SPPlayerService *player = [SPPlayerService shared];
     SPTrack *track = player.currentTrack;
 
+    if (!track) {
+        self.renderedTrackId = nil;
+        self.topBarShowingTrackInfo = NO;
+        self.topBarHairline.alpha = 0.0;
+        self.scrollTopFadeView.alpha = 0.0;
+        self.centerCard.coverShadowContainer.alpha = 1.0;
+        self.centerCard.trackMetaStack.alpha = 1.0;
+        self.centerCard.likeButton.alpha = 1.0;
+        self.centerCard.likeButton.userInteractionEnabled = YES;
+        self.contextSubLabel.text = @"待机模式";
+        self.contextTitleLabel.text = @"空白播放页";
+        self.moreButton.hidden = YES;
+        self.mainScrollView.hidden = YES;
+        self.emptyStateView.hidden = NO;
+        UIColor *idleTop = [UIColor sp_colorWithHex:0x1E222B];
+        UIColor *idleDark = [UIColor sp_colorWithHex:0x121214];
+        [self.backgroundGradient setColors:@[idleTop, [UIColor sp_colorWithHex:0x15171C], idleDark] animated:animated];
+        [self.centerCard configureWithTrack:nil dominantColorCompletion:nil];
+        [self.lyricsCardView configureWithDocument:nil];
+        return;
+    }
+
+    self.contextSubLabel.text = @"正在播放自";
+    self.moreButton.hidden = NO;
+    self.mainScrollView.hidden = NO;
+    self.emptyStateView.hidden = YES;
+
     BOOL alreadyDisplayingCenter = (track.identifier.length > 0 &&
                                     [self.renderedTrackId isEqualToString:track.identifier] &&
                                     self.centerCard.coverView.image != nil);
     self.renderedTrackId = track.identifier;
-    self.contextTitleLabel.text = player.contextTitle ?: track.album.name ?: @"";
+    self.topBarShowingTrackInfo = NO;
+    [self updateTopBarChromeForVerticalOffset:self.mainScrollView.contentOffset.y animated:NO];
 
     if (!alreadyDisplayingCenter) {
         UIColor *initialTop = [self initialThemeColorForTrack:track];
@@ -750,17 +1029,73 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
 }
 
 - (void)reloadModes {
-    SPPlayerService *player = [SPPlayerService shared];
-    self.shuffleButton.tintColor = player.isShuffleEnabled ? SPTheme.accentColor : UIColor.whiteColor;
-
-    NSString *repeatIcon = (player.repeatMode == SPRepeatModeOne) ? @"repeat.1" : @"repeat";
-    [self.repeatButton sp_setSymbol:repeatIcon size:20 weight:UIImageSymbolWeightMedium animated:NO];
-    self.repeatButton.tintColor = (player.repeatMode != SPRepeatModeOff) ? SPTheme.accentColor : UIColor.whiteColor;
+    [self reloadModesAnimated:YES];
 }
 
-#pragma mark - UIScrollViewDelegate (Horizontal Track Paging)
+- (void)reloadModesAnimated:(BOOL)animated {
+    SPPlayerService *player = [SPPlayerService shared];
+    self.shuffleButton.tintColor = player.isShuffleEnabled ? SPTheme.brandGreenColor : UIColor.whiteColor;
+    self.shuffleDot.hidden = !player.isShuffleEnabled;
+
+    NSString *repeatIcon = (player.repeatMode == SPRepeatModeOne) ? @"repeat.1" : @"repeat";
+    [self.repeatButton sp_setSymbol:repeatIcon size:20 weight:UIImageSymbolWeightMedium animated:animated];
+    BOOL repeatActive = (player.repeatMode != SPRepeatModeOff);
+    self.repeatButton.tintColor = repeatActive ? SPTheme.brandGreenColor : UIColor.whiteColor;
+    self.repeatDot.hidden = !repeatActive;
+}
+
+#pragma mark - UIScrollViewDelegate (Vertical Lyrics Chrome & Horizontal Track Paging)
+
+- (void)updateTopBarChromeForVerticalOffset:(CGFloat)rawOffsetY animated:(BOOL)animated {
+    SPPlayerService *player = [SPPlayerService shared];
+    SPTrack *track = player.currentTrack;
+    if (!track) return;
+
+    CGFloat offsetY = MAX(0.0, rawOffsetY);
+    CGFloat edgeProgress = MIN(MAX(offsetY / 28.0, 0.0), 1.0);
+    self.topBarHairline.alpha = edgeProgress;
+    self.scrollTopFadeView.alpha = edgeProgress;
+
+    // 封面与曲目信息滚出视口后平滑淡隐，避免顶栏与滚动卡片出现双层重复标题
+    CGFloat coverFade = 1.0 - MIN(MAX((offsetY - 120.0) / 110.0, 0.0), 1.0);
+    self.centerCard.coverShadowContainer.alpha = coverFade;
+    CGFloat metaFade = 1.0 - MIN(MAX((offsetY - 210.0) / 75.0, 0.0), 1.0);
+    self.centerCard.trackMetaStack.alpha = metaFade;
+    self.centerCard.likeButton.alpha = metaFade;
+    self.centerCard.likeButton.userInteractionEnabled = (metaFade > 0.25);
+
+    BOOL shouldShowTrack = (offsetY > 285.0);
+    NSString *targetSub = shouldShowTrack ? (track.artistNames ?: @"") : @"正在播放自";
+    NSString *targetTitle = shouldShowTrack ? (track.name ?: @"") : (player.contextTitle ?: track.album.name ?: @"");
+
+    if (shouldShowTrack != self.topBarShowingTrackInfo || ![self.contextTitleLabel.text isEqualToString:targetTitle]) {
+        self.topBarShowingTrackInfo = shouldShowTrack;
+        if (animated && !UIAccessibilityIsReduceMotionEnabled()) {
+            [UIView transitionWithView:self.contextTitleLabel.superview
+                              duration:0.18
+                               options:UIViewAnimationOptionTransitionCrossDissolve | UIViewAnimationOptionAllowUserInteraction
+                            animations:^{
+                self.contextSubLabel.text = targetSub;
+                self.contextTitleLabel.text = targetTitle;
+            } completion:nil];
+        } else {
+            self.contextSubLabel.text = targetSub;
+            self.contextTitleLabel.text = targetTitle;
+        }
+    }
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    if (scrollView == self.trackPagerScrollView) {
+        self.pagerDragStartTrackId = [SPPlayerService shared].currentTrack.identifier;
+    }
+}
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView == self.mainScrollView) {
+        [self updateTopBarChromeForVerticalOffset:scrollView.contentOffset.y animated:YES];
+        return;
+    }
     if (scrollView != self.trackPagerScrollView) return;
     if (self.ignorePagerScrollEvents || !self.lastHasAdjacent || self.lastPagerWidth <= 0) return;
     if (!(scrollView.isDragging || scrollView.isDecelerating)) return;
@@ -801,6 +1136,19 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
     }
 
     SPPlayerService *player = [SPPlayerService shared];
+    NSString *currentId = player.currentTrack.identifier;
+    if (self.pagerDragStartTrackId.length > 0 && currentId.length > 0 && ![self.pagerDragStartTrackId isEqualToString:currentId]) {
+        self.pagerDragStartTrackId = nil;
+        self.ignorePagerScrollEvents = YES;
+        [scrollView setContentOffset:CGPointMake(self.lastPagerWidth, 0) animated:YES];
+        self.ignorePagerScrollEvents = NO;
+        if (self.currentThemeColor) {
+            [self applyGradientWithTopColor:self.currentThemeColor animated:YES];
+        }
+        return;
+    }
+    self.pagerDragStartTrackId = nil;
+
     BOOL isNext = (page >= 2);
     SPTrack *targetTrack = isNext ? player.nextTrack : player.previousTrack;
     if (!targetTrack) {
@@ -816,6 +1164,7 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
     self.renderedTrackId = targetTrack.identifier;
     self.centerCard.trackIdentifier = targetTrack.identifier;
     self.centerCard.coverView.image = sourceCard.coverView.image;
+    [self.centerCard.coverView sp_syncCurrentURLString:targetTrack.coverURL];
     self.centerCard.trackTitleLabel.text = sourceCard.trackTitleLabel.text;
     self.centerCard.artistLabel.text = sourceCard.artistLabel.text;
     [self.centerCard applyLiked:[[SPLibraryStore shared] isTrackLiked:targetTrack.identifier] animated:NO];
@@ -839,6 +1188,20 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
 #pragma mark - Actions
 
 - (void)dismissTapped { [SPHaptics light]; [self dismissViewControllerAnimated:YES completion:nil]; }
+- (void)emptyDiscoverTapped {
+    [SPHaptics medium];
+    void (^handler)(NSInteger) = [self.emptyActionHandler copy];
+    [self dismissViewControllerAnimated:YES completion:^{
+        if (handler) handler(0);
+    }];
+}
+- (void)emptyLibraryTapped {
+    [SPHaptics medium];
+    void (^handler)(NSInteger) = [self.emptyActionHandler copy];
+    [self dismissViewControllerAnimated:YES completion:^{
+        if (handler) handler(2);
+    }];
+}
 - (void)deviceTapped { [SPHaptics light]; [SPToast showMessage:@"当前输出：本机扬声器"]; }
 
 - (void)scrollToLyricsTapped {
@@ -855,12 +1218,16 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
                                                                                             document:self.lyricsCardView.document
                                                                                           themeColor:self.currentThemeColor
                                                                                      showTranslation:self.lyricsCardView.isShowingTranslation];
-    full.modalPresentationStyle = UIModalPresentationFullScreen;
+    __weak typeof(self) weakSelf = self;
+    full.translationDidChangeHandler = ^(BOOL showTranslation) {
+        weakSelf.lyricsCardView.showTranslation = showTranslation;
+    };
     [self presentViewController:full animated:YES completion:nil];
 }
 
 - (void)coverLongPressed:(UILongPressGestureRecognizer *)lp {
     if (lp.state != UIGestureRecognizerStateBegan) return;
+    if (![SPPlayerService shared].currentTrack) return;
     [SPHaptics medium];
     if (!UIAccessibilityIsReduceMotionEnabled()) {
         [UIView animateWithDuration:0.12 animations:^{
@@ -917,6 +1284,7 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
         [SPToast showMessage:@"已添加到下一首播放"];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:self.moreButton presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 
@@ -952,6 +1320,15 @@ shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRec
 - (void)queueTapped {
     [SPHaptics light];
     SPQueueViewController *queue = [SPQueueViewController new];
+    if (@available(iOS 15.0, *)) {
+        UISheetPresentationController *sheet = queue.sheetPresentationController;
+        if (sheet) {
+            sheet.detents = @[UISheetPresentationControllerDetent.mediumDetent, UISheetPresentationControllerDetent.largeDetent];
+            sheet.selectedDetentIdentifier = UISheetPresentationControllerDetentIdentifierLarge;
+            sheet.prefersGrabberVisible = YES;
+            sheet.preferredCornerRadius = 24.0;
+        }
+    }
     [self presentViewController:queue animated:YES completion:nil];
 }
 

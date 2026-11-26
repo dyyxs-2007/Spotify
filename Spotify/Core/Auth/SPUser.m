@@ -10,7 +10,8 @@
 - (NSString *)avatarInitial {
     NSString *source = self.nickname.length > 0 ? self.nickname : self.account;
     if (source.length == 0) return @"S";
-    NSString *first = [source substringToIndex:1];
+    NSRange firstRange = [source rangeOfComposedCharacterSequenceAtIndex:0];
+    NSString *first = [source substringWithRange:firstRange];
     return first.uppercaseString;
 }
 

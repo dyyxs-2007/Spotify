@@ -10,6 +10,7 @@
 #import "SPGradientView.h"
 #import "SPScaleButton.h"
 #import "SPAuthService.h"
+#import "SPLocalAuthProvider.h"
 #import "SceneDelegate.h"
 #import "SPHaptics.h"
 #import "SPToast.h"
@@ -92,6 +93,7 @@
     [heroContainer addSubview:brandMark];
 
     UILabel *headlineLabel = [UILabel new];
+    headlineLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
     NSMutableParagraphStyle *pStyle = [NSMutableParagraphStyle new];
     pStyle.alignment = NSTextAlignmentCenter;
     pStyle.lineSpacing = 4;
@@ -109,6 +111,7 @@
     subLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.58];
     subLabel.textAlignment = NSTextAlignmentCenter;
     subLabel.numberOfLines = 2;
+    subLabel.lineBreakStrategy = NSLineBreakStrategyStandard;
     [heroContainer addSubview:subLabel];
 
     // 底部柔和胶囊按钮区
@@ -146,7 +149,7 @@
 
     NSMutableArray<UIView *> *buttonViews = [@[registerBtn, qrLoginBtn, codeLoginBtn, _demoButton, passwordLoginBtn] mutableCopy];
     if (self.context == SPAuthPresentationContextGate) {
-        UIButton *guestBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+        SPScaleButton *guestBtn = [SPScaleButton buttonWithType:UIButtonTypeSystem];
         [guestBtn setTitle:@"先以游客身份逛逛" forState:UIControlStateNormal];
         [guestBtn setTitleColor:[UIColor colorWithWhite:1.0 alpha:0.48] forState:UIControlStateNormal];
         guestBtn.titleLabel.font = [SPTheme fontOfSize:13 weight:UIFontWeightMedium];
@@ -280,24 +283,31 @@
     [self.demoSpinner startAnimating];
     [SPHaptics medium];
 
+    // 演示账号始终走本地演示认证源，避免切换为网易云认证后将 demo@spotify.local 发往线上接口导致必败
+    SPLocalAuthProvider *localProvider = [SPLocalAuthProvider new];
     __weak typeof(self) weakSelf = self;
-    [[SPAuthService shared] loginWithAccount:@"demo@spotify.local"
-                                    password:@"Spotify123"
-                                  completion:^(SPUser *user, NSError *error) {
-        weakSelf.demoLoading = NO;
-        weakSelf.demoButton.enabled = YES;
-        [weakSelf.demoSpinner stopAnimating];
-        if (!user || error) {
-            [SPToast showMessage:error.localizedDescription ?: @"演示账号登录失败"];
-            return;
-        }
-        [SPToast showMessage:[NSString stringWithFormat:@"欢迎，%@", user.nickname]];
-        if (weakSelf.context == SPAuthPresentationContextGate) {
-            [[SceneDelegate shared] transitionToMainAppAnimated:YES];
-        } else {
-            void (^handler)(void) = [weakSelf.authSuccessHandler copy];
-            [weakSelf.navigationController dismissViewControllerAnimated:YES completion:handler];
-        }
+    [localProvider loginWithAccount:@"demo@spotify.local"
+                           password:@"Spotify123"
+                         completion:^(SPUser *user, NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+            strongSelf.demoLoading = NO;
+            strongSelf.demoButton.enabled = YES;
+            [strongSelf.demoSpinner stopAnimating];
+            if (!user || error) {
+                [SPToast showMessage:error.localizedDescription ?: @"演示账号登录失败"];
+                return;
+            }
+            [[SPAuthService shared] adoptAuthenticatedUser:user];
+            [SPToast showMessage:[NSString stringWithFormat:@"欢迎，%@", user.nickname]];
+            if (strongSelf.context == SPAuthPresentationContextGate) {
+                [[SceneDelegate shared] transitionToMainAppAnimated:YES];
+            } else {
+                void (^handler)(void) = [strongSelf.authSuccessHandler copy];
+                [strongSelf.navigationController dismissViewControllerAnimated:YES completion:handler];
+            }
+        });
     }];
 }
 

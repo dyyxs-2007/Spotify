@@ -8,6 +8,7 @@
 #import "SPHomeSectionHeaderView.h"
 #import "SPMediaCells.h"
 #import "SPUserAvatarButton.h"
+#import "SPScaleButton.h"
 #import "SPDetailViewController.h"
 #import "SPMusicRepository.h"
 #import "SPLibraryStore.h"
@@ -26,23 +27,29 @@
 @end
 
 @interface SPSearchViewController () <UICollectionViewDataSource, UICollectionViewDelegateFlowLayout,
-                                      UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, SPPlayerObserver>
+                                      UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate,
+                                      UIGestureRecognizerDelegate, SPPlayerObserver>
 @property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UIView *searchContainer;
 @property (nonatomic, strong) UITextField *searchField;
-@property (nonatomic, strong) UIButton *clearButton;
-@property (nonatomic, strong) UIButton *cancelButton;
+@property (nonatomic, strong) SPScaleButton *clearButton;
+@property (nonatomic, strong) UIActivityIndicatorView *searchSpinner;
+@property (nonatomic, strong) SPScaleButton *cancelButton;
 @property (nonatomic, strong) MASConstraint *searchRightToContainer;
 @property (nonatomic, strong) MASConstraint *searchRightToCancel;
 
 @property (nonatomic, strong) UICollectionView *categoryCollectionView;
+@property (nonatomic, strong) UIControl *searchDismissScrim;
 @property (nonatomic, strong) UITableView *resultTableView;
+@property (nonatomic, strong) UIView *topBarHairline;
 @property (nonatomic, strong) UILabel *emptyLabel;
 
 @property (nonatomic, copy) NSArray<SPSearchCategory *> *categories;
 @property (nonatomic, copy) NSArray<SPSearchResultSection *> *resultSections;
 @property (nonatomic, copy) NSString *latestKeyword;
 @property (nonatomic, copy, nullable) dispatch_block_t pendingSearchBlock;
+@property (nonatomic, assign) BOOL isSearchFocused;
+@property (nonatomic, assign) CGFloat keyboardOverlap;
 @end
 
 @implementation SPSearchViewController
@@ -63,6 +70,14 @@
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(musicSourceDidChange)
                                                  name:SPMusicSourceDidChangeNotification
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillChangeFrame:)
+                                                 name:UIKeyboardWillChangeFrameNotification
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide:)
+                                                 name:UIKeyboardWillHideNotification
                                                object:nil];
     [self loadCategories];
 }
@@ -110,14 +125,21 @@
     [_searchField addTarget:self action:@selector(textDidChange:) forControlEvents:UIControlEventEditingChanged];
     [_searchContainer addSubview:_searchField];
 
-    _clearButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [_clearButton setImage:[SPTheme symbol:@"xmark.circle.fill" size:17 weight:UIImageSymbolWeightMedium] forState:UIControlStateNormal];
+    _clearButton = [SPScaleButton buttonWithType:UIButtonTypeSystem];
+    [_clearButton sp_setSymbol:@"xmark.circle.fill" size:17 weight:UIImageSymbolWeightMedium animated:NO];
     _clearButton.tintColor = [UIColor sp_colorWithHex:0x535353];
     _clearButton.hidden = YES;
     [_clearButton addTarget:self action:@selector(clearTapped) forControlEvents:UIControlEventTouchUpInside];
     [_searchContainer addSubview:_clearButton];
 
-    _cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    _searchSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
+    _searchSpinner.color = [UIColor sp_colorWithHex:0x535353];
+    _searchSpinner.transform = CGAffineTransformMakeScale(0.76, 0.76);
+    _searchSpinner.hidesWhenStopped = YES;
+    _searchSpinner.userInteractionEnabled = NO;
+    [_searchContainer addSubview:_searchSpinner];
+
+    _cancelButton = [SPScaleButton buttonWithType:UIButtonTypeSystem];
     [_cancelButton setTitle:@"取消" forState:UIControlStateNormal];
     _cancelButton.titleLabel.font = [SPTheme fontOfSize:15 weight:UIFontWeightMedium];
     _cancelButton.tintColor = SPTheme.textPrimaryColor;
@@ -142,9 +164,19 @@
                        withReuseIdentifier:[SPHomeSectionHeaderView reuseId]];
     [self.view addSubview:_categoryCollectionView];
 
+    // 搜索聚焦遮罩层：键盘弹出且未输入关键词时，点击屏幕任意浏览区立即收回键盘
+    _searchDismissScrim = [UIControl new];
+    _searchDismissScrim.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.42];
+    _searchDismissScrim.alpha = 0.0;
+    _searchDismissScrim.hidden = YES;
+    [_searchDismissScrim addTarget:self action:@selector(scrimTapped) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_searchDismissScrim];
+
     _resultTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
     _resultTableView.backgroundColor = SPTheme.backgroundColor;
     _resultTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    _resultTableView.contentInset = UIEdgeInsetsMake(0, 0, 16, 0);
+    _resultTableView.scrollIndicatorInsets = _resultTableView.contentInset;
     _resultTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     _resultTableView.dataSource = self;
     _resultTableView.delegate = self;
@@ -159,6 +191,18 @@
     _emptyLabel.textAlignment = NSTextAlignmentCenter;
     _emptyLabel.hidden = YES;
     [self.view addSubview:_emptyLabel];
+
+    _topBarHairline = [UIView new];
+    _topBarHairline.backgroundColor = SPTheme.separatorColor;
+    _topBarHairline.alpha = 0.0;
+    _topBarHairline.userInteractionEnabled = NO;
+    [self.view addSubview:_topBarHairline];
+
+    // 视图空白区域轻点收回键盘（展示搜索结果时点空白区/Header 也能随时收起键盘）
+    UITapGestureRecognizer *bgTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleBackgroundTap)];
+    bgTap.cancelsTouchesInView = NO;
+    bgTap.delegate = self;
+    [self.view addGestureRecognizer:bgTap];
 
     [avatarButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop).offset(10);
@@ -193,6 +237,9 @@
         make.centerY.equalTo(self.searchContainer);
         make.size.mas_equalTo(CGSizeMake(32, 32));
     }];
+    [_searchSpinner mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.center.equalTo(self.clearButton);
+    }];
     [_searchField mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(searchIcon.mas_right).offset(8);
         make.right.equalTo(self.clearButton.mas_left).offset(-4);
@@ -201,6 +248,14 @@
     [_categoryCollectionView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(self.searchContainer.mas_bottom).offset(12);
         make.left.right.bottom.equalTo(self.view);
+    }];
+    [_topBarHairline mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.categoryCollectionView.mas_top);
+        make.left.right.equalTo(self.view);
+        make.height.mas_equalTo(1.0 / UIScreen.mainScreen.scale);
+    }];
+    [_searchDismissScrim mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self.categoryCollectionView);
     }];
     [_resultTableView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self.categoryCollectionView);
@@ -212,9 +267,10 @@
 }
 
 - (void)updateSearchBarAppearance {
-    BOOL isLight = (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleLight);
+    UITraitCollection *tc = [SPTheme resolvedTraitCollectionForView:self.view];
+    BOOL isLight = (tc.userInterfaceStyle == UIUserInterfaceStyleLight);
     self.searchContainer.layer.borderWidth = isLight ? (1.0 / UIScreen.mainScreen.scale) : 0;
-    self.searchContainer.layer.borderColor = [SPTheme.separatorColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
+    self.searchContainer.layer.borderColor = [SPTheme.separatorColor resolvedColorWithTraitCollection:tc].CGColor;
 }
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
@@ -247,6 +303,7 @@
         [self performSearchWithKeyword:@""];
         return;
     }
+    [self updateSearchScrimAnimated:YES];
 
     __weak typeof(self) weakSelf = self;
     dispatch_block_t block = dispatch_block_create(0, ^{
@@ -259,24 +316,33 @@
 - (void)performSearchWithKeyword:(NSString *)keyword {
     NSString *trimmed = [keyword stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
     self.latestKeyword = trimmed;
-    self.clearButton.hidden = (trimmed.length == 0);
 
     if (trimmed.length == 0) {
+        [self.searchSpinner stopAnimating];
+        self.clearButton.hidden = YES;
         self.resultSections = @[];
         self.resultTableView.hidden = YES;
         self.emptyLabel.hidden = YES;
         self.categoryCollectionView.hidden = NO;
         [self.resultTableView reloadData];
+        [self updateTopBarHairlineForScrollView:self.categoryCollectionView];
+        [self updateSearchScrimAnimated:YES];
         return;
     }
 
+    [self updateSearchScrimAnimated:YES];
     self.categoryCollectionView.hidden = YES;
     self.resultTableView.hidden = NO;
+    [self updateTopBarHairlineForScrollView:self.resultTableView];
     self.emptyLabel.hidden = YES;
+    self.clearButton.hidden = YES;
+    [self.searchSpinner startAnimating];
 
     __weak typeof(self) weakSelf = self;
     [[SPMusicRepository shared] searchWithKeyword:trimmed completion:^(SPSearchResult *result, NSError *error) {
         if (![weakSelf.latestKeyword isEqualToString:trimmed]) return;
+        [weakSelf.searchSpinner stopAnimating];
+        weakSelf.clearButton.hidden = (trimmed.length == 0);
         if (error) {
             [SPToast showMessage:error.localizedDescription ?: @"搜索失败"];
             return;
@@ -317,6 +383,36 @@
     [self.resultTableView reloadData];
 }
 
+- (void)updateSearchScrimAnimated:(BOOL)animated {
+    BOOL showScrim = self.isSearchFocused
+        && (self.latestKeyword.length == 0)
+        && ((self.searchField.text ?: @"").length == 0);
+
+    BOOL reduceMotion = UIAccessibilityIsReduceMotionEnabled();
+    if (showScrim) {
+        self.searchDismissScrim.hidden = NO;
+    }
+    NSTimeInterval dur = showScrim ? 0.20 : 0.15;
+    void (^work)(void) = ^{
+        self.searchDismissScrim.alpha = showScrim ? 1.0 : 0.0;
+    };
+    void (^done)(BOOL) = ^(BOOL finished) {
+        if (!showScrim && self.searchDismissScrim.alpha < 0.01) {
+            self.searchDismissScrim.hidden = YES;
+        }
+    };
+    if (animated && !reduceMotion) {
+        [UIView animateWithDuration:dur
+                              delay:0
+                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction
+                         animations:work
+                         completion:done];
+    } else {
+        work();
+        done(YES);
+    }
+}
+
 - (void)setSearchActive:(BOOL)active {
     self.cancelButton.hidden = NO;
     if (active) {
@@ -326,12 +422,63 @@
         [self.searchRightToCancel uninstall];
         [self.searchRightToContainer install];
     }
-    [UIView animateWithDuration:0.25 animations:^{
+    [UIView animateWithDuration:0.24
+                          delay:0
+                        options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction
+                     animations:^{
         self.cancelButton.alpha = active ? 1 : 0;
         [self.view layoutIfNeeded];
     } completion:^(BOOL finished) {
         if (!active) self.cancelButton.hidden = YES;
     }];
+}
+
+#pragma mark - Keyboard & Dismissal
+
+- (void)keyboardWillChangeFrame:(NSNotification *)note {
+    CGRect endFrame = [note.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGRect converted = [self.view convertRect:endFrame fromView:nil];
+    CGFloat overlap = MAX(0.0, CGRectGetMaxY(self.view.bounds) - CGRectGetMinY(converted));
+    [self applyResultTableKeyboardInsetForOverlap:overlap];
+}
+
+- (void)keyboardWillHide:(NSNotification *)note {
+    [self applyResultTableKeyboardInsetForOverlap:0.0];
+}
+
+- (void)applyResultTableKeyboardInsetForOverlap:(CGFloat)overlap {
+    self.keyboardOverlap = overlap;
+    CGFloat extraBottom = MAX(0.0, overlap - self.view.safeAreaInsets.bottom);
+    CGFloat bottom = MAX(16.0, extraBottom + (extraBottom > 0 ? 12.0 : 0.0));
+    UIEdgeInsets insets = UIEdgeInsetsMake(0, 0, bottom, 0);
+    self.resultTableView.contentInset = insets;
+    self.resultTableView.scrollIndicatorInsets = insets;
+}
+
+- (void)scrimTapped {
+    [SPHaptics light];
+    [self cancelTapped];
+}
+
+- (void)handleBackgroundTap {
+    if (self.searchField.isFirstResponder) {
+        [self.searchField resignFirstResponder];
+    }
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    if (!self.searchField.isFirstResponder) return NO;
+    UIView *v = touch.view;
+    while (v && v != self.view) {
+        if (v == self.searchContainer || v == self.cancelButton || v == self.searchDismissScrim) {
+            return NO;
+        }
+        if (!self.resultTableView.hidden && ([v isKindOfClass:UITableViewCell.class] || [v isKindOfClass:UIControl.class])) {
+            return NO;
+        }
+        v = v.superview;
+    }
+    return YES;
 }
 
 #pragma mark - Actions
@@ -342,12 +489,15 @@
 
 - (void)clearTapped {
     if (self.pendingSearchBlock) dispatch_block_cancel(self.pendingSearchBlock);
+    [self.searchSpinner stopAnimating];
     self.searchField.text = @"";
     [self performSearchWithKeyword:@""];
 }
 
 - (void)cancelTapped {
     if (self.pendingSearchBlock) dispatch_block_cancel(self.pendingSearchBlock);
+    [self.searchSpinner stopAnimating];
+    self.isSearchFocused = NO;
     self.searchField.text = @"";
     [self.searchField resignFirstResponder];
     [self setSearchActive:NO];
@@ -357,7 +507,17 @@
 #pragma mark - UITextFieldDelegate
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
+    self.isSearchFocused = YES;
     [self setSearchActive:YES];
+    [self updateSearchScrimAnimated:YES];
+}
+
+- (void)textFieldDidEndEditing:(UITextField *)textField {
+    self.isSearchFocused = NO;
+    [self updateSearchScrimAnimated:YES];
+    if (self.latestKeyword.length == 0 && (self.searchField.text ?: @"").length == 0) {
+        [self setSearchActive:NO];
+    }
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
@@ -383,6 +543,7 @@
     SPHomeSectionHeaderView *header = [collectionView dequeueReusableSupplementaryViewOfKind:kind
                                                                          withReuseIdentifier:[SPHomeSectionHeaderView reuseId]
                                                                                 forIndexPath:indexPath];
+    header.horizontalInset = SPMarginHorizontal;
     header.titleLabel.text = @"浏览全部";
     header.titleLabel.font = [SPTheme fontOfSize:17 weight:UIFontWeightBold];
     return header;
@@ -484,9 +645,16 @@ referenceSizeForHeaderInSection:(NSInteger)section {
         [SPToast showMessage:@"已添加到下一首播放"];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"立即播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        [[SPPlayerService shared] playTracks:tracks startIndex:index contextTitle:@"搜索结果"];
+        NSUInteger currentIdx = [tracks indexOfObject:track];
+        if (currentIdx == NSNotFound && tracks.count > 0) {
+            currentIdx = (NSUInteger)MIN(MAX(index, 0), (NSInteger)tracks.count - 1);
+        }
+        if (currentIdx < tracks.count) {
+            [[SPPlayerService shared] playTracks:tracks startIndex:currentIdx contextTitle:@"搜索结果"];
+        }
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [SPTheme configurePopoverForViewController:sheet sourceView:nil presentingVC:self];
     [self presentViewController:sheet animated:YES completion:nil];
 }
 
@@ -501,6 +669,18 @@ referenceSizeForHeaderInSection:(NSInteger)section {
     } else {
         SPDetailViewController *detail = [[SPDetailViewController alloc] initWithMediaItem:item];
         [self.navigationController pushViewController:detail animated:YES];
+    }
+}
+
+- (void)updateTopBarHairlineForScrollView:(UIScrollView *)scrollView {
+    CGFloat offsetY = MAX(0.0, scrollView.contentOffset.y);
+    self.topBarHairline.alpha = MIN(MAX(offsetY / 20.0, 0.0), 1.0);
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if ((scrollView == self.categoryCollectionView && !self.categoryCollectionView.hidden)
+        || (scrollView == self.resultTableView && !self.resultTableView.hidden)) {
+        [self updateTopBarHairlineForScrollView:scrollView];
     }
 }
 

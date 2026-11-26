@@ -12,10 +12,11 @@
 #import "SPHaptics.h"
 #import "SPToast.h"
 
-@interface SPAuthViewController () <UITextFieldDelegate>
+@interface SPAuthViewController () <UITextFieldDelegate, UIGestureRecognizerDelegate>
 @property (nonatomic, assign) SPAuthMode mode;
 @property (nonatomic, assign) SPAuthPresentationContext context;
 
+@property (nonatomic, strong) SPScaleButton *backButton;
 @property (nonatomic, strong) UILabel *navTitleLabel;
 @property (nonatomic, strong) UIScrollView *scrollView;
 @property (nonatomic, strong) UIView *contentView;
@@ -27,7 +28,7 @@
 @property (nonatomic, strong) UITextField *codeField;
 @property (nonatomic, strong) UIView *codeBox;
 @property (nonatomic, strong) SPScaleButton *sendCodeButton;
-@property (nonatomic, strong) UIButton *codeHintButton;
+@property (nonatomic, strong) SPScaleButton *codeHintButton;
 @property (nonatomic, copy, nullable) NSString *lastDebugCode;
 
 @property (nonatomic, strong) UIView *passwordGroup;
@@ -44,9 +45,11 @@
 @property (nonatomic, strong) UILabel *errorLabel;
 @property (nonatomic, strong) SPScaleButton *submitButton;
 @property (nonatomic, strong) UIActivityIndicatorView *submitSpinner;
-@property (nonatomic, strong) UIButton *switchModeButton;
+@property (nonatomic, strong) SPScaleButton *switchModeButton;
 
+@property (nonatomic, copy, nullable) NSString *prefilledAccount;
 @property (nonatomic, strong, nullable) NSTimer *countdownTimer;
+@property (nonatomic, strong, nullable) NSDate *countdownEndDate;
 @property (nonatomic, assign) NSInteger countdownSeconds;
 @property (nonatomic, assign) BOOL submitting;
 @end
@@ -77,6 +80,9 @@
     self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     self.view.backgroundColor = [UIColor sp_colorWithHex:0x121212];
     [self setupViews];
+    if (self.prefilledAccount.length > 0) {
+        self.accountField.text = self.prefilledAccount;
+    }
     [self registerKeyboardNotifications];
     [self configureForCurrentMode];
 }
@@ -88,8 +94,8 @@
 
 - (void)setupViews {
     SPGradientView *ambient = [SPGradientView new];
-    ambient.colors = @[[UIColor colorWithWhite:1.0 alpha:0.04], [UIColor sp_colorWithHex:0x121212]];
-    ambient.locations = @[@0.0, @0.32];
+    ambient.colors = @[[SPTheme.brandGreenColor colorWithAlphaComponent:0.055], [UIColor sp_colorWithHex:0x121212]];
+    ambient.locations = @[@0.0, @0.28];
     [self.view addSubview:ambient];
 
     // 简洁顶栏
@@ -97,6 +103,7 @@
     [self.view addSubview:navBar];
 
     SPScaleButton *backButton = [SPScaleButton buttonWithType:UIButtonTypeSystem];
+    _backButton = backButton;
     [backButton sp_setSymbol:@"chevron.left" size:19 weight:UIImageSymbolWeightSemibold animated:NO];
     backButton.tintColor = UIColor.whiteColor;
     [backButton addTarget:self action:@selector(backTapped) forControlEvents:UIControlEventTouchUpInside];
@@ -109,12 +116,16 @@
 
     _scrollView = [UIScrollView new];
     _scrollView.showsVerticalScrollIndicator = NO;
+    _scrollView.alwaysBounceVertical = YES;
     _scrollView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     [self.view addSubview:_scrollView];
 
     _contentView = [UIView new];
     [_scrollView addSubview:_contentView];
-    [_contentView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)]];
+    UITapGestureRecognizer *dismissTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    dismissTap.cancelsTouchesInView = NO;
+    dismissTap.delegate = self;
+    [_contentView addGestureRecognizer:dismissTap];
 
     // 1. 账号组
     _accountField = [self makeTextFieldWithPlaceholder:@"如 name@domain.com 或 13800138000"
@@ -134,6 +145,9 @@
     [_sendCodeButton setTitle:@"获取验证码" forState:UIControlStateNormal];
     _sendCodeButton.titleLabel.font = [SPTheme monospacedDigitFontOfSize:13 weight:UIFontWeightSemibold];
     _sendCodeButton.tintColor = SPTheme.brandGreenColor;
+    _sendCodeButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+    [_sendCodeButton setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+    [_sendCodeButton setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
     [_sendCodeButton addTarget:self action:@selector(sendCodeTapped) forControlEvents:UIControlEventTouchUpInside];
     [_sendCodeButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.width.mas_greaterThanOrEqualTo(86);
@@ -142,7 +156,7 @@
     _codeBox = [self wrapField:_codeField trailingView:_sendCodeButton];
     _codeGroup = [self fieldGroupWithTitle:@"验证码" caption:nil box:_codeBox];
 
-    _codeHintButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    _codeHintButton = [SPScaleButton buttonWithType:UIButtonTypeSystem];
     _codeHintButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     _codeHintButton.titleLabel.font = [SPTheme monospacedDigitFontOfSize:13 weight:UIFontWeightSemibold];
     [_codeHintButton setTitleColor:SPTheme.brandGreenColor forState:UIControlStateNormal];
@@ -165,7 +179,7 @@
     [_passwordField addTarget:self action:@selector(passwordChanged) forControlEvents:UIControlEventEditingChanged];
 
     _eyeButton = [SPScaleButton buttonWithType:UIButtonTypeSystem];
-    [_eyeButton sp_setSymbol:@"eye.slash" size:17 weight:UIFontWeightRegular animated:NO];
+    [_eyeButton sp_setSymbol:@"eye.slash" size:17 weight:UIImageSymbolWeightRegular animated:NO];
     _eyeButton.tintColor = [UIColor colorWithWhite:1.0 alpha:0.62];
     [_eyeButton addTarget:self action:@selector(toggleSecureTapped) forControlEvents:UIControlEventTouchUpInside];
     [_eyeButton mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -244,7 +258,7 @@
     _submitSpinner.userInteractionEnabled = NO;
     [_submitButton addSubview:_submitSpinner];
 
-    _switchModeButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    _switchModeButton = [SPScaleButton buttonWithType:UIButtonTypeSystem];
     _switchModeButton.titleLabel.font = [SPTheme fontOfSize:13 weight:UIFontWeightMedium];
     _switchModeButton.tintColor = [UIColor colorWithWhite:1.0 alpha:0.65];
     [_switchModeButton addTarget:self action:@selector(switchModeTapped) forControlEvents:UIControlEventTouchUpInside];
@@ -356,7 +370,7 @@
     box.layer.cornerRadius = 10;
     box.layer.cornerCurve = kCACornerCurveContinuous;
     box.layer.borderWidth = 1.0;
-    box.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.10].CGColor;
+    box.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.16].CGColor;
     [box addSubview:field];
 
     [box mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -364,9 +378,12 @@
     }];
 
     if (trailingView) {
+        [trailingView setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+        [trailingView setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+        [field setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
         [box addSubview:trailingView];
         [trailingView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.right.equalTo(box).offset(-10);
+            make.right.equalTo(box).offset(-12);
             make.centerY.equalTo(box);
         }];
         [field mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -419,21 +436,40 @@
 
 #pragma mark - UITextFieldDelegate & Smooth Focus Transition
 
+- (void)animateBox:(UIView *)box focused:(BOOL)focused {
+    UIColor *targetBg = focused ? [UIColor sp_colorWithHex:0x2A2A32] : [UIColor sp_colorWithHex:0x222226];
+    CGColorRef targetBorder = [UIColor colorWithWhite:1.0 alpha:(focused ? 0.60 : 0.16)].CGColor;
+    CGFloat targetWidth = focused ? 1.25 : 1.0;
+    if (UIAccessibilityIsReduceMotionEnabled()) {
+        box.backgroundColor = targetBg;
+        box.layer.borderColor = targetBorder;
+        box.layer.borderWidth = targetWidth;
+        return;
+    }
+    CABasicAnimation *borderAnim = [CABasicAnimation animationWithKeyPath:@"borderColor"];
+    borderAnim.fromValue = (__bridge id)box.layer.borderColor;
+    borderAnim.toValue = (__bridge id)targetBorder;
+    borderAnim.duration = 0.18;
+    borderAnim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
+    [box.layer addAnimation:borderAnim forKey:@"sp_borderColor"];
+    box.layer.borderColor = targetBorder;
+    box.layer.borderWidth = targetWidth;
+
+    [UIView animateWithDuration:0.18
+                          delay:0
+                        options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction
+                     animations:^{
+        box.backgroundColor = targetBg;
+    } completion:nil];
+}
+
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     [self showError:nil];
-    UIView *box = textField.superview;
-    [UIView animateWithDuration:0.18 animations:^{
-        box.backgroundColor = [UIColor sp_colorWithHex:0x2A2A30];
-    }];
-    box.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.50].CGColor;
+    [self animateBox:textField.superview focused:YES];
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
-    UIView *box = textField.superview;
-    [UIView animateWithDuration:0.18 animations:^{
-        box.backgroundColor = [UIColor sp_colorWithHex:0x222226];
-    }];
-    box.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.10].CGColor;
+    [self animateBox:textField.superview focused:NO];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
@@ -470,6 +506,15 @@
 
 - (void)dismissKeyboard { [self.view endEditing:YES]; }
 
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    UIView *v = touch.view;
+    while (v && v != self.contentView) {
+        if ([v isKindOfClass:UIControl.class]) return NO;
+        v = v.superview;
+    }
+    return YES;
+}
+
 #pragma mark - Actions
 
 - (void)backTapped {
@@ -483,6 +528,7 @@
         ? SPAuthModePasswordLogin
         : SPAuthModeCodeLogin;
     SPAuthViewController *replacement = [[SPAuthViewController alloc] initWithMode:nextMode context:self.context];
+    replacement.prefilledAccount = self.accountField.text;
     replacement.authSuccessHandler = self.authSuccessHandler;
 
     NSMutableArray *stack = [self.navigationController.viewControllers mutableCopy];
@@ -494,7 +540,13 @@
 
 - (void)toggleSecureTapped {
     [SPHaptics light];
+    NSString *existing = self.passwordField.text;
     self.passwordField.secureTextEntry = !self.passwordField.secureTextEntry;
+    self.passwordField.font = [SPTheme fontOfSize:15 weight:UIFontWeightMedium];
+    if (existing.length > 0) {
+        self.passwordField.text = @"";
+        self.passwordField.text = existing;
+    }
     NSString *sym = self.passwordField.secureTextEntry ? @"eye.slash" : @"eye";
     [self.eyeButton sp_setSymbol:sym size:17 weight:UIImageSymbolWeightRegular animated:YES];
 }
@@ -568,29 +620,41 @@
 
 - (void)startCountdown {
     [self.countdownTimer invalidate];
+    self.countdownEndDate = [NSDate dateWithTimeIntervalSinceNow:60.0];
     self.countdownSeconds = 60;
     self.sendCodeButton.enabled = NO;
     self.sendCodeButton.alpha = 0.55;
     [self.sendCodeButton setTitle:@"60s 后重发" forState:UIControlStateNormal];
 
     __weak typeof(self) weakSelf = self;
-    self.countdownTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES block:^(NSTimer *timer) {
-        weakSelf.countdownSeconds -= 1;
-        if (weakSelf.countdownSeconds <= 0) {
-            [timer invalidate];
-            weakSelf.countdownTimer = nil;
-            weakSelf.sendCodeButton.enabled = YES;
-            weakSelf.sendCodeButton.alpha = 1.0;
-            [weakSelf.sendCodeButton setTitle:@"获取验证码" forState:UIControlStateNormal];
+    NSTimer *timer = [NSTimer timerWithTimeInterval:1.0 repeats:YES block:^(NSTimer *t) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) {
+            [t invalidate];
+            return;
+        }
+        NSInteger remaining = (NSInteger)ceil([strongSelf.countdownEndDate timeIntervalSinceNow]);
+        strongSelf.countdownSeconds = MAX(0, remaining);
+        if (strongSelf.countdownSeconds <= 0) {
+            [t invalidate];
+            strongSelf.countdownTimer = nil;
+            strongSelf.countdownEndDate = nil;
+            strongSelf.sendCodeButton.enabled = YES;
+            strongSelf.sendCodeButton.alpha = 1.0;
+            [strongSelf.sendCodeButton setTitle:@"获取验证码" forState:UIControlStateNormal];
         } else {
-            [weakSelf.sendCodeButton setTitle:[NSString stringWithFormat:@"%lds 后重发", (long)weakSelf.countdownSeconds]
+            [strongSelf.sendCodeButton setTitle:[NSString stringWithFormat:@"%lds 后重发", (long)strongSelf.countdownSeconds]
                                      forState:UIControlStateNormal];
         }
     }];
+    [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+    self.countdownTimer = timer;
 }
 
 - (void)setSubmitting:(BOOL)submitting {
     _submitting = submitting;
+    self.backButton.enabled = !submitting;
+    self.backButton.alpha = submitting ? 0.45 : 1.0;
     self.submitButton.enabled = !submitting;
     self.submitButton.alpha = submitting ? 0.72 : 1.0;
     if (submitting) {
@@ -616,17 +680,19 @@
     self.submitting = YES;
     __weak typeof(self) weakSelf = self;
     void (^done)(SPUser *, NSError *) = ^(SPUser *user, NSError *error) {
-        weakSelf.submitting = NO;
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        strongSelf.submitting = NO;
         if (error || !user) {
-            [weakSelf showError:error.localizedDescription ?: @"操作失败"];
+            [strongSelf showError:error.localizedDescription ?: @"操作失败"];
             return;
         }
         [SPToast showMessage:[NSString stringWithFormat:@"欢迎回来，%@", user.nickname]];
-        if (weakSelf.context == SPAuthPresentationContextGate) {
+        if (strongSelf.context == SPAuthPresentationContextGate) {
             [[SceneDelegate shared] transitionToMainAppAnimated:YES];
         } else {
-            void (^handler)(void) = [weakSelf.authSuccessHandler copy];
-            [weakSelf.navigationController dismissViewControllerAnimated:YES completion:handler];
+            void (^handler)(void) = [strongSelf.authSuccessHandler copy];
+            [strongSelf.navigationController dismissViewControllerAnimated:YES completion:handler];
         }
     };
 
