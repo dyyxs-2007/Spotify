@@ -1,10 +1,10 @@
-# Spotify 仿写（Objective-C + UIKit）
+# Spotify 仿写
 
-基于 Objective-C 和 UIKit 纯代码构建的 Spotify 风格 iOS 音乐客户端，采用模块化分层架构（数据源与播放器均与 UI 解耦）。
+基于 Objective-C 和 UIKit 纯代码构建的 Spotify 风格 iOS 音乐客户端，采用模块化分层架构
 
 ## 运行方式
 
-1. 确保已安装 Xcode、CocoaPods 与 XcodeGen（如修改了目录结构）。
+1. 确保已安装 Xcode、CocoaPods 与 XcodeGen（如修改了目录结构）
 2. 在项目根目录执行：
    ```bash
    xcodegen generate && pod install
